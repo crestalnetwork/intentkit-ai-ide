@@ -58,11 +58,11 @@ const Settings: React.FC<SettingsProps> = ({ baseUrl, onBaseUrlChange }) => {
       {/* Settings button */}
       <button
         onClick={togglePanel}
-        className="p-1 rounded-full bg-[#21262d] hover:bg-[#30363d] focus:outline-none focus:ring-1 focus:ring-[#58a6ff]"
+        className="p-1.5 rounded-full bg-[#21262d] hover:bg-[#30363d] focus:outline-none focus:ring-1 focus:ring-[#58a6ff]"
         aria-label="Settings"
       >
         <svg
-          className="h-4 w-4 text-[#c9d1d9]"
+          className="h-5 w-5 text-[#c9d1d9]"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
@@ -84,16 +84,16 @@ const Settings: React.FC<SettingsProps> = ({ baseUrl, onBaseUrlChange }) => {
 
       {/* Settings panel */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-72 bg-[#161b22] rounded-lg border border-[#30363d] shadow-xl z-10">
-          <div className="p-2 border-b border-[#30363d]">
-            <h3 className="text-sm font-medium text-[#c9d1d9]">Settings</h3>
+        <div className="absolute right-0 mt-3 w-80 bg-[#161b22] rounded-lg border border-[#30363d] shadow-xl z-10">
+          <div className="p-3 border-b border-[#30363d]">
+            <h3 className="text-base font-medium text-[#c9d1d9]">Settings</h3>
           </div>
 
-          <form onSubmit={handleSubmit} className="p-2">
-            <div className="mb-2">
+          <form onSubmit={handleSubmit} className="p-3">
+            <div className="mb-3">
               <label
                 htmlFor="baseUrl"
-                className="block text-xs font-medium text-[#c9d1d9] mb-1"
+                className="block text-sm font-medium text-[#c9d1d9] mb-2"
               >
                 IntentKit Server URL
               </label>
@@ -103,16 +103,16 @@ const Settings: React.FC<SettingsProps> = ({ baseUrl, onBaseUrlChange }) => {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="http://127.0.0.1:8000"
-                className="w-full p-1.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-xs"
+                className="w-full p-2.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
               />
-              <p className="mt-1 text-[9px] text-[#8b949e]">
+              <p className="mt-2 text-xs text-[#8b949e]">
                 The base URL of your IntentKit server
               </p>
             </div>
 
             {status && (
               <div
-                className={`mb-2 p-1.5 rounded border text-xs ${
+                className={`mb-3 p-2 rounded border text-sm ${
                   status.type === "success"
                     ? "bg-[#132e21] text-[#56d364] border-[#238636]"
                     : "bg-[#3b1a1a] text-[#f85149] border-[#f85149]"
@@ -126,21 +126,21 @@ const Settings: React.FC<SettingsProps> = ({ baseUrl, onBaseUrlChange }) => {
               <button
                 type="button"
                 onClick={handleReset}
-                className="text-xs bg-[#21262d] text-[#c9d1d9] px-2 py-1 rounded border border-[#30363d] hover:bg-[#30363d]"
+                className="text-sm bg-[#21262d] text-[#c9d1d9] px-3 py-1.5 rounded border border-[#30363d] hover:bg-[#30363d]"
               >
                 Reset
               </button>
-              <div className="flex space-x-1">
+              <div className="flex space-x-2">
                 <button
                   type="button"
                   onClick={() => setIsOpen(false)}
-                  className="text-xs bg-[#21262d] text-[#c9d1d9] px-2 py-1 rounded border border-[#30363d] hover:bg-[#30363d]"
+                  className="text-sm bg-[#21262d] text-[#c9d1d9] px-3 py-1.5 rounded border border-[#30363d] hover:bg-[#30363d]"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="text-xs bg-[#238636] text-white px-2 py-1 rounded border border-[#238636] hover:bg-[#2ea043]"
+                  className="text-sm bg-[#238636] text-white px-3 py-1.5 rounded border border-[#238636] hover:bg-[#2ea043]"
                 >
                   Save
                 </button>
@@ -148,8 +148,8 @@ const Settings: React.FC<SettingsProps> = ({ baseUrl, onBaseUrlChange }) => {
             </div>
           </form>
 
-          <div className="p-2 bg-[#0d1117] border-t border-[#30363d] rounded-b-lg">
-            <p className="text-[9px] text-[#8b949e]">
+          <div className="p-3 bg-[#0d1117] border-t border-[#30363d] rounded-b-lg">
+            <p className="text-xs text-[#8b949e]">
               Current:{" "}
               <span className="font-mono text-[#c9d1d9]">{baseUrl}</span>
             </p>

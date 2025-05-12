@@ -208,10 +208,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     return (
       <div
         key={index}
-        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-1.5`}
+        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}
       >
         <div
-          className={`${messageClasses} rounded-md py-1.5 px-2.5 max-w-[85%] break-words`}
+          className={`${messageClasses} rounded-md py-2.5 px-3.5 max-w-[85%] break-words`}
         >
           {message.isJson ? (
             <div className="code-block">
@@ -220,17 +220,17 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 style={materialDark}
                 customStyle={{
                   margin: 0,
-                  padding: "0.5rem",
-                  borderRadius: "0.25rem",
-                  maxHeight: "300px",
-                  fontSize: "0.75rem",
+                  padding: "0.75rem",
+                  borderRadius: "0.375rem",
+                  maxHeight: "350px",
+                  fontSize: "0.875rem",
                 }}
               >
                 {message.content}
               </SyntaxHighlighter>
             </div>
           ) : (
-            <div className="whitespace-pre-wrap text-xs md:text-sm">
+            <div className="whitespace-pre-wrap text-sm md:text-base">
               {message.content}
             </div>
           )}
@@ -241,12 +241,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const renderTypingIndicator = () => {
     return (
-      <div className="flex justify-start mb-2">
-        <div className="bg-[#1e293b] border border-[#30363d] text-[#c9d1d9] rounded-md py-1.5 px-3 inline-flex items-center">
-          <div className="typing-indicator">
-            <span></span>
-            <span></span>
-            <span></span>
+      <div className="flex justify-start mb-3">
+        <div className="bg-[#1e293b] border border-[#30363d] text-[#c9d1d9] rounded-md py-2.5 px-3.5 inline-flex items-center">
+          <div className="typing-indicator flex space-x-1.5">
+            <span className="w-2 h-2 rounded-full"></span>
+            <span className="w-2 h-2 rounded-full"></span>
+            <span className="w-2 h-2 rounded-full"></span>
           </div>
         </div>
       </div>
@@ -254,103 +254,105 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   };
 
   return (
-    <div
-      ref={chatContainerRef}
-      className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col overflow-hidden"
-    >
-      <div className="p-2 bg-[#161b22] border-b border-[#30363d] flex justify-between items-center">
-        <h2 className="text-md font-semibold text-[#c9d1d9] truncate">
-          Chat with {agentName || "IntentKit Agent"}
-        </h2>
+    <div className="bg-[#161b22] rounded-xl border border-[#30363d] flex flex-col h-full overflow-hidden">
+      <div className="p-3 bg-[#161b22] text-[#c9d1d9] border-b border-[#30363d]">
+        <h2 className="text-lg font-semibold">Chat with {agentName}</h2>
       </div>
-
-      <div className="flex-1 overflow-y-auto p-2 bg-[#0d1117]">
-        <div className="flex flex-col">
-          {messages.map(renderMessage)}
-          {loading && renderTypingIndicator()}
-          <div ref={messagesEndRef} />
-        </div>
+      <div
+        ref={chatContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-3"
+      >
+        {messages.map((message, index) => renderMessage(message, index))}
+        {loading && (
+          <div className="flex justify-start mb-3">
+            <div className="bg-[#1e293b] border border-[#30363d] text-[#c9d1d9] rounded-md py-2.5 px-3.5 inline-flex items-center">
+              <div className="typing-indicator flex space-x-1.5">
+                <span className="w-2 h-2 rounded-full"></span>
+                <span className="w-2 h-2 rounded-full"></span>
+                <span className="w-2 h-2 rounded-full"></span>
+              </div>
+            </div>
+          </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
-
-      <div className="p-2 bg-[#161b22] border-t border-[#30363d]">
-        <form onSubmit={handleSubmit} className="flex">
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
-            className="flex-1 py-1.5 px-2 bg-[#0d1117] border border-[#30363d] rounded-l text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
-            disabled={loading || !agentName}
-          />
-          <button
-            type="submit"
-            className={`px-3 rounded-r text-white focus:outline-none focus:ring-1 focus:ring-[#58a6ff] text-sm ${
-              loading || !inputValue.trim() || !agentName
-                ? "bg-[#21262d] cursor-not-allowed"
-                : "bg-[#238636] hover:bg-[#2ea043]"
-            }`}
-            disabled={loading || !inputValue.trim() || !agentName}
-          >
-            Send
-          </button>
-        </form>
-      </div>
+      <form
+        onSubmit={handleSubmit}
+        className="border-t border-[#30363d] p-3 flex items-end"
+      >
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Type your message..."
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="flex-1 p-2.5 bg-[#0d1117] border border-[#30363d] rounded-lg text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm md:text-base"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="ml-2 px-4 py-2.5 bg-[#238636] text-white rounded-lg hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none text-sm"
+        >
+          Send
+        </button>
+      </form>
 
       {showAuthModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-4 w-80 auth-modal">
-            <h3 className="text-lg font-semibold text-[#c9d1d9] mb-3">
+        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#161b22] rounded-lg p-6 border border-[#30363d] max-w-md w-full">
+            <h3 className="text-xl font-semibold text-[#c9d1d9] mb-4">
               Authentication Required
             </h3>
             {authError && (
-              <div className="mb-3 text-sm text-[#f85149]">{authError}</div>
+              <div className="bg-[#3b1a1a] border border-[#f85149] text-[#f85149] p-3 rounded-md mb-4 text-sm">
+                {authError}
+              </div>
             )}
             <form onSubmit={handleAuthSubmit}>
-              <div className="mb-2">
+              <div className="mb-4">
                 <label
                   htmlFor="username"
-                  className="block text-sm font-medium text-[#8b949e] mb-1"
+                  className="block text-sm font-medium text-[#c9d1d9] mb-2"
                 >
                   Username
                 </label>
                 <input
-                  id="username"
                   type="text"
+                  id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full p-1.5 bg-[#0d1117] border border-[#30363d] rounded text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
+                  className="w-full p-2.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
                   required
                 />
               </div>
-              <div className="mb-3">
+              <div className="mb-4">
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-[#8b949e] mb-1"
+                  className="block text-sm font-medium text-[#c9d1d9] mb-2"
                 >
                   Password
                 </label>
                 <input
-                  id="password"
                   type="password"
+                  id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-1.5 bg-[#0d1117] border border-[#30363d] rounded text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
+                  className="w-full p-2.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
                   required
                 />
               </div>
-              <div className="flex justify-end">
+              <div className="flex justify-end space-x-3">
                 <button
                   type="button"
                   onClick={() => setShowAuthModal(false)}
-                  className="mr-2 px-3 py-1 bg-[#21262d] text-[#c9d1d9] rounded border border-[#30363d] text-sm hover:bg-[#30363d]"
+                  className="px-4 py-2 bg-[#21262d] text-[#c9d1d9] rounded-md border border-[#30363d] hover:bg-[#30363d] text-sm"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-3 py-1 bg-[#238636] text-white rounded border border-[#238636] text-sm hover:bg-[#2ea043]"
+                  className="px-4 py-2 bg-[#238636] text-white rounded-md hover:bg-[#2ea043] text-sm"
                 >
                   Login
                 </button>

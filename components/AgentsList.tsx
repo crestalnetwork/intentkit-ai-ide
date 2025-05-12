@@ -81,7 +81,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
     return (
       <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col">
         <div className="flex items-center justify-center flex-1">
-          <div className="loader ease-linear rounded-full border-3 border-t-3 border-[#30363d] h-10 w-10 mb-4"></div>
+          <div className="loader ease-linear rounded-full border-3 border-t-3 border-[#30363d] h-12 w-12 mb-4"></div>
         </div>
       </div>
     );
@@ -89,12 +89,12 @@ const AgentsList: React.FC<AgentsListProps> = ({
 
   if (error) {
     return (
-      <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col p-3">
-        <div className="bg-[#21262d] border-l-4 border-[#f85149] p-3 mb-2 rounded-md">
+      <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col p-4">
+        <div className="bg-[#21262d] border-l-4 border-[#f85149] p-4 mb-3 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg
-                className="h-4 w-4 text-[#f85149]"
+                className="h-5 w-5 text-[#f85149]"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -105,18 +105,18 @@ const AgentsList: React.FC<AgentsListProps> = ({
                 />
               </svg>
             </div>
-            <div className="ml-2">
-              <h3 className="text-xs font-medium text-[#f85149]">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-[#f85149]">
                 Error loading agents
               </h3>
-              <div className="mt-1 text-xs text-[#c9d1d9]">
+              <div className="mt-2 text-sm text-[#c9d1d9]">
                 <p>{error}</p>
               </div>
-              <div className="mt-2">
+              <div className="mt-3">
                 <button
                   type="button"
                   onClick={fetchAgents}
-                  className="text-xs bg-[#21262d] text-[#c9d1d9] px-2 py-1 rounded border border-[#30363d] hover:bg-[#30363d]"
+                  className="text-sm bg-[#21262d] text-[#c9d1d9] px-3 py-1.5 rounded border border-[#30363d] hover:bg-[#30363d]"
                 >
                   Try again
                 </button>
@@ -129,26 +129,26 @@ const AgentsList: React.FC<AgentsListProps> = ({
   }
 
   return (
-    <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col">
-      <div className="p-2 bg-[#161b22] text-[#c9d1d9] border-b border-[#30363d]">
+    <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col overflow-hidden">
+      <div className="p-3 bg-[#161b22] text-[#c9d1d9] border-b border-[#30363d]">
         <h2 className="text-lg font-semibold">Agents</h2>
       </div>
 
-      <div className="p-2 border-b border-[#30363d]">
+      <div className="p-3 border-b border-[#30363d]">
         <input
           id="search-agents"
           type="text"
           placeholder="Search agents..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full p-1.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-xs"
+          className="w-full p-2.5 bg-[#0d1117] border border-[#30363d] rounded-md text-[#c9d1d9] focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] text-sm"
         />
       </div>
 
       <div className="flex-1 overflow-y-auto agent-list-scroll">
         <div className="divide-y divide-[#30363d]">
           {filteredAgents.length === 0 ? (
-            <div className="p-3 text-center text-[#8b949e] text-xs">
+            <div className="p-4 text-center text-[#8b949e] text-sm">
               {searchQuery
                 ? "No agents found matching your search"
                 : "No agents available"}
@@ -158,24 +158,24 @@ const AgentsList: React.FC<AgentsListProps> = ({
               <div
                 key={agent.id}
                 onClick={() => onAgentSelect(agent)}
-                className={`p-2 hover:bg-[#21262d] cursor-pointer transition-colors agent-item ${
+                className={`p-3 hover:bg-[#21262d] cursor-pointer transition-colors agent-item ${
                   selectedAgentId === agent.id ? "bg-[#1f2937]" : ""
                 }`}
               >
-                <h3 className="font-medium text-[#c9d1d9] text-xs">
+                <h3 className="font-medium text-[#c9d1d9] text-sm">
                   {agent.name || agent.id}
                 </h3>
                 {agent.purpose && (
-                  <p className="text-xs text-[#8b949e] mt-1 line-clamp-1">
+                  <p className="text-sm text-[#8b949e] mt-2 line-clamp-2">
                     {agent.purpose}
                   </p>
                 )}
-                <div className="mt-1.5 flex flex-wrap items-center gap-1 text-xs">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
+                <div className="mt-2.5 flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
                     {agent.id}
                   </span>
                   {agent.model && (
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
                       {agent.model}
                     </span>
                   )}
@@ -186,16 +186,16 @@ const AgentsList: React.FC<AgentsListProps> = ({
         </div>
       </div>
 
-      <div className="p-1.5 bg-[#161b22] border-t border-[#30363d] flex justify-between items-center">
-        <span className="text-[10px] text-[#8b949e]">
+      <div className="p-2.5 bg-[#161b22] border-t border-[#30363d] flex justify-between items-center">
+        <span className="text-xs text-[#8b949e]">
           {filteredAgents.length} agents
         </span>
         <button
           onClick={refreshAgents}
-          className="text-[10px] text-[#58a6ff] hover:underline flex items-center"
+          className="text-xs text-[#58a6ff] hover:underline flex items-center"
         >
           <svg
-            className="mr-1 h-3 w-3"
+            className="mr-1.5 h-3.5 w-3.5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

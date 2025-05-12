@@ -105,16 +105,16 @@ const Home: React.FC = () => {
       </Head>
 
       {/* Header */}
-      <header className="bg-[#161b22] border-b border-[#30363d] py-2">
-        <div className="max-w-full mx-auto px-2 flex justify-between items-center">
-          <h1 className="text-base font-bold text-[#c9d1d9]">
+      <header className="bg-[#161b22] border-b border-[#30363d] py-3">
+        <div className="max-w-full mx-auto px-4 flex justify-between items-center">
+          <h1 className="text-xl font-bold text-[#c9d1d9]">
             IntentKit Sandbox
           </h1>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             {selectedAgent && (
               <button
                 onClick={toggleViewMode}
-                className="text-xs py-1 px-2 bg-[#21262d] text-[#c9d1d9] rounded border border-[#30363d] hover:bg-[#30363d]"
+                className="text-sm py-1.5 px-3 bg-[#21262d] text-[#c9d1d9] rounded border border-[#30363d] hover:bg-[#30363d]"
               >
                 {viewMode === "chat" ? "View Details" : "Back to Chat"}
               </button>
@@ -126,8 +126,8 @@ const Home: React.FC = () => {
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
-        <div className="max-w-full h-full px-2 py-2">
-          <div className="grid grid-cols-12 gap-2 h-full">
+        <div className="max-w-full h-full px-4 py-3">
+          <div className="grid grid-cols-12 gap-4 h-full">
             {/* Sidebar - Agent List */}
             <div className="col-span-12 sm:col-span-4 md:col-span-3 lg:col-span-2 h-full overflow-hidden agent-list-container">
               <AgentsList
@@ -149,9 +149,9 @@ const Home: React.FC = () => {
                   <AgentDetail agent={selectedAgent} />
                 )
               ) : (
-                <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-4 text-center text-[#8b949e] flex flex-col items-center justify-center h-full">
+                <div className="bg-[#161b22] rounded-xl border border-[#30363d] p-6 text-center text-[#8b949e] flex flex-col items-center justify-center h-full">
                   <svg
-                    className="h-12 w-12 text-[#8b949e]"
+                    className="h-16 w-16 text-[#8b949e]"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -163,10 +163,10 @@ const Home: React.FC = () => {
                       d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                     />
                   </svg>
-                  <h3 className="mt-4 text-base font-medium text-[#c9d1d9]">
+                  <h3 className="mt-6 text-lg font-medium text-[#c9d1d9]">
                     Select an Agent to Start
                   </h3>
-                  <p className="mt-2 max-w-md mx-auto text-sm">
+                  <p className="mt-3 max-w-md mx-auto text-base">
                     Choose an agent from the list to start chatting.
                   </p>
                 </div>
@@ -177,9 +177,9 @@ const Home: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-[#161b22] border-t border-[#30363d] py-1">
-        <div className="max-w-full mx-auto px-2 text-center">
-          <p className="text-[10px] text-[#8b949e]">IntentKit Sandbox UI</p>
+      <footer className="bg-[#161b22] border-t border-[#30363d] py-2">
+        <div className="max-w-full mx-auto px-4 text-center">
+          <p className="text-xs text-[#8b949e]">IntentKit Sandbox UI</p>
         </div>
       </footer>
     </div>

@@ -6,11 +6,33 @@ A Next.js application for testing and interacting with [IntentKit](https://githu
 
 - Node.js 14.x or higher
 - npm or yarn
+- Python 3.12+ (for running IntentKit server)
 - Running IntentKit server (see [Setup IntentKit Server](#setup-intentkit-server) below)
 
 ## Step-by-Step Getting Started
 
-### 1. Clone and Set Up This UI
+### 1. Clone IntentKit Repository (Required)
+
+```bash
+# Clone the IntentKit repository
+git clone https://github.com/crestalnetwork/intentkit.git
+cd intentkit
+
+# Set up Python environment
+python3.12 -m venv .venv
+source .venv/bin/activate
+pip install poetry
+poetry install --with dev
+
+# Configure environment
+cp example.env .env
+# Edit .env with your OPENAI_API_KEY and DB settings
+
+# Run the IntentKit server
+uvicorn app.api:app --reload
+```
+
+### 2. Clone and Set Up This UI (In a New Terminal)
 
 ```bash
 # Clone this repository
@@ -24,9 +46,20 @@ npm install
 npm run dev
 ```
 
-### 2. Access the UI
+### 3. Create Your First Agent
+
+In a new terminal, navigate to the IntentKit directory:
+
+```bash
+cd path/to/intentkit/scripts
+sh create.sh my-first-agent
+```
+
+### 4. Access the UI
 
 Open your browser and navigate to [http://localhost:3000](http://localhost:3000)
+
+You should now see the IntentKit Sandbox UI. Use the settings icon to configure the server URL if needed (default: http://127.0.0.1:8000).
 
 ## Features
 
@@ -46,7 +79,7 @@ Open your browser and navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Setup IntentKit Server
 
-This UI requires a running IntentKit server to function. Follow these steps to set up IntentKit:
+If you skipped the setup steps above, here's a recap of how to set up the IntentKit server:
 
 ### Local Development (Recommended)
 
@@ -75,12 +108,12 @@ cp example.env .env
 uvicorn app.api:app --reload
 ```
 
-### Creating Your First Agent
+### Creating More Agents
 
-Once IntentKit is running:
+To create additional agents:
 ```bash
-cd scripts
-sh create.sh my-first-agent
+cd intentkit/scripts
+sh create.sh another-agent
 ```
 
 Test your agent:
@@ -117,13 +150,3 @@ Contributions to this UI project are welcome. Please feel free to submit a PR or
 
 This project is licensed under the MIT License.
 
-## Development
-
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial. 

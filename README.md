@@ -2,6 +2,10 @@
 
 A Next.js application for testing and interacting with [IntentKit](https://github.com/crestalnetwork/intentkit) agents - a powerful autonomous agent framework.
 
+<div align="center">
+  <video src="https://github.com/user-attachments/assets/416f67fd-a7b6-4b1e-bac2-5c31c96efc97" width="600" autoplay loop muted playsinline></video>
+</div>
+
 ## Prerequisites
 
 - Node.js 14.x or higher

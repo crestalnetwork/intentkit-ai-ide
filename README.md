@@ -77,40 +77,9 @@ You should now see the IntentKit Sandbox UI. Use the settings icon to configure 
 4. **Interact with the Agent**: Send messages and view responses in the chat interface
 5. **View Agent Details**: Toggle between chat and configuration view with the "View Details" button
 
-## Setup IntentKit Server
+## Creating Additional Agents
 
-If you skipped the setup steps above, here's a recap of how to set up the IntentKit server:
-
-### Local Development (Recommended)
-
-1. Clone the repository:
-```bash
-git clone https://github.com/crestalnetwork/intentkit.git
-cd intentkit
-```
-
-2. Set up Python environment (requires Python 3.12+):
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-pip install poetry
-poetry install --with dev
-```
-
-3. Configure environment:
-```bash
-cp example.env .env
-# Edit .env with your OPENAI_API_KEY and DB settings
-```
-
-4. Run the application:
-```bash
-uvicorn app.api:app --reload
-```
-
-### Creating More Agents
-
-To create additional agents:
+To create more agents:
 ```bash
 cd intentkit/scripts
 sh create.sh another-agent

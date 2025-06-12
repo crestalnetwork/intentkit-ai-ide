@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import ChatInterface from "../components/ChatInterface";
 import AgentsList from "../components/AgentsList";
 import AgentDetail from "../components/AgentDetail";
@@ -111,6 +112,12 @@ const Home: React.FC = () => {
             IntentKit Sandbox
           </h1>
           <div className="flex items-center space-x-3">
+            <Link
+              href="/create-agent"
+              className="text-sm py-1.5 px-3 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-colors"
+            >
+              + Create Agent
+            </Link>
             {selectedAgent && (
               <button
                 onClick={toggleViewMode}

@@ -191,14 +191,14 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <>
       <header
-        className={`bg-[${theme.colors.background.primary}] border-b border-[${theme.colors.border.primary}] py-2 sm:py-4 flex-shrink-0 shadow-lg`}
+        className={`bg-[${theme.colors.background.primary}] border-b border-[${theme.colors.border.primary}] py-1 sm:py-2 flex-shrink-0 shadow-lg`}
       >
-        <div className="max-w-full mx-auto px-3 sm:px-6 flex justify-between items-center">
-          <div className="flex items-center space-x-2 sm:space-x-6">
+        <div className="max-w-full mx-auto px-2 sm:px-4 flex justify-between items-center">
+          <div className="flex items-center space-x-2 sm:space-x-4">
             {backLink && (
               <Link
                 href={backLink.href}
-                className={`inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.primary.main}] rounded-lg border border-[${theme.colors.primary.border}] hover:bg-[${theme.colors.primary.light}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200`}
+                className={`inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.primary.main}] rounded border border-[${theme.colors.primary.border}] hover:bg-[${theme.colors.primary.light}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200`}
               >
                 <svg
                   className="w-3 h-3 sm:w-4 sm:h-4"
@@ -217,15 +217,15 @@ const Header: React.FC<HeaderProps> = ({
                 <span className="sm:hidden">←</span>
               </Link>
             )}
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-8 h-8 sm:w-16 sm:h-16 bg-transparent rounded-lg flex items-center justify-center p-1">
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-transparent rounded flex items-center justify-center p-1">
                 <img
                   src="/images/logo.png"
                   alt="IntentKit Logo"
                   className="w-full h-full object-contain"
                 />
               </div>
-              <h1 className="text-lg sm:text-2xl font-bold text-white truncate">
+              <h1 className="text-base sm:text-lg font-bold text-white truncate">
                 {title}
               </h1>
             </div>

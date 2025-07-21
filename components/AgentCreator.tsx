@@ -178,12 +178,26 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     }
 
     const userInput = inputValue.trim();
+
+    // Validate prompt length as per API requirements (10-1000 characters)
+    if (userInput.length < 10) {
+      showToast.error(
+        "Please provide a more detailed description (at least 10 characters)"
+      );
+      return;
+    }
+    if (userInput.length > 1000) {
+      showToast.error("Description is too long (maximum 1000 characters)");
+      return;
+    }
+
     logger.info(
       "User message sent to agent creator",
       {
         message: userInput,
         messageLength: userInput.length,
         hasProjectId: !!projectId,
+        hasExistingAgent: !!createdAgent,
         userId: user?.id,
       },
       "AgentCreator.handleSendMessage"
@@ -200,13 +214,24 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     setLoading(true);
 
     try {
-      // Call the generator API
+      // Call the generator API with proper payload structure
       const generateRequest: AgentGenerateRequest = {
         prompt: userInput,
         user_id: user!.id,
-        ...(projectId && { project_id: projectId }),
-        ...(createdAgent && { existing_agent: createdAgent }),
+        project_id: projectId || null, // Explicitly set null if no project ID
+        existing_agent: createdAgent || null, // Explicitly set null if no existing agent
       };
+
+      logger.info(
+        "Sending agent generation request",
+        {
+          promptLength: generateRequest.prompt.length,
+          hasProjectId: !!generateRequest.project_id,
+          hasExistingAgent: !!generateRequest.existing_agent,
+          userId: generateRequest.user_id,
+        },
+        "AgentCreator.handleSendMessage"
+      );
 
       const response = await apiClient.generateAgent(generateRequest);
 
@@ -215,7 +240,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         {
           projectId: response.project_id,
           agentName: response.agent.name,
-          skillsCount: response.activated_skills.length,
+          skillsCount: response.activated_skills?.length || 0,
+          autonomousTasksCount: response.autonomous_tasks?.length || 0,
+          tagsCount: response.tags?.length || 0,
           userId: user?.id,
         },
         "AgentCreator.handleSendMessage"
@@ -224,31 +251,42 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       // Update project ID for future requests
       setProjectId(response.project_id);
 
-      // Convert the generated agent to our Agent type
+      // The API now returns a complete Agent object, so we use it directly
       const generatedAgent: Agent = {
-        name: response.agent.name || "Generated Agent",
-        purpose: response.agent.purpose || "AI Assistant",
-        personality: response.agent.personality || "Helpful and friendly",
-        principles: response.agent.principles || "Be accurate and helpful",
         ...response.agent,
-        owner: user!.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        owner: user!.id, // Ensure owner is set
+        created_at: response.agent.created_at || new Date().toISOString(),
+        updated_at: response.agent.updated_at || new Date().toISOString(),
       };
 
       // Set the generated agent config (not deployed yet)
       setCreatedAgent(generatedAgent);
 
+      // Create a more detailed summary message
+      let summaryContent = response.summary;
+
+      // Add information about activated skills and autonomous tasks
+      if (response.activated_skills && response.activated_skills.length > 0) {
+        summaryContent += `\n\n**Activated Skills:** ${response.activated_skills.join(
+          ", "
+        )}`;
+      }
+
+      if (response.autonomous_tasks && response.autonomous_tasks.length > 0) {
+        summaryContent += `\n\n**Autonomous Tasks:** ${response.autonomous_tasks.length} task(s) configured`;
+      }
+
       // Add AI response to conversation
       const aiMessage: ConversationMessage = {
         role: "assistant",
-        content: response.summary,
+        content: summaryContent,
         created_at: new Date().toISOString(),
         metadata: {
           agent: generatedAgent,
           projectId: response.project_id,
-          activatedSkills: response.activated_skills,
-          tags: response.tags,
+          activatedSkills: response.activated_skills || [],
+          autonomousTasks: response.autonomous_tasks || [],
+          tags: response.tags || [],
         },
       };
       setMessages((prev) => [...prev, aiMessage]);
@@ -261,6 +299,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           message: userInput,
           error: error.message,
           status: error.response?.status,
+          responseData: error.response?.data,
           userId: user?.id,
         },
         "AgentCreator.handleSendMessage"
@@ -269,8 +308,33 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       console.error("Error generating agent:", error);
 
       let errorMessage = "Failed to generate agent configuration";
-      if (error.response?.status === 401) {
+
+      // Handle different error types
+      if (error.response?.status === 400) {
+        // Bad request - could be validation error
+        if (error.response?.data?.detail) {
+          if (Array.isArray(error.response.data.detail)) {
+            // Validation errors array
+            const validationErrors = error.response.data.detail
+              .map((err: any) => err.msg || err.message || String(err))
+              .join(", ");
+            errorMessage = `Validation error: ${validationErrors}`;
+          } else {
+            errorMessage = `Invalid request: ${error.response.data.detail}`;
+          }
+        } else if (error.response?.data?.message) {
+          errorMessage = `Bad request: ${error.response.data.message}`;
+        }
+      } else if (error.response?.status === 401) {
         errorMessage = "Authentication expired. Please sign in again.";
+      } else if (error.response?.status === 500) {
+        errorMessage =
+          "Agent generation failed on server. Please try again with a different description.";
+      } else if (error.message.includes("Prompt must be between")) {
+        errorMessage = error.message; // Our client-side validation message
+      } else if (error.message.includes("user_id is required")) {
+        errorMessage =
+          "Authentication error. Please refresh and sign in again.";
       } else if (error.response?.data?.message) {
         errorMessage = `Generation failed: ${error.response.data.message}`;
       } else if (error.message) {
@@ -499,7 +563,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           {message.metadata?.agent && (
             <div className="mt-4 p-3 bg-[#0d1117] rounded border border-[#21262d]">
               <div className="text-sm font-medium text-[#58a6ff] mb-2">
-                ✨ Agent Created Successfully!
+                ✨ Agent Configuration Generated!
               </div>
               <div className="text-xs space-y-1">
                 <div>
@@ -514,8 +578,30 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                   <span className="text-[#7d8590]">Model:</span>{" "}
                   {message.metadata.agent.model || "Default"}
                 </div>
+
+                {/* Show activated skills from API response */}
+                {message.metadata.activatedSkills &&
+                  message.metadata.activatedSkills.length > 0 && (
+                    <div>
+                      <span className="text-[#7d8590]">Activated Skills:</span>
+                      <div className="mt-1">
+                        {message.metadata.activatedSkills.map(
+                          (skillName: string) => (
+                            <span
+                              key={skillName}
+                              className="inline-flex items-center bg-[#21262d] text-[#58a6ff] text-xs px-2 py-1 rounded mr-1 mb-1"
+                            >
+                              {skillName}
+                            </span>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {/* Show configured skills (editable) */}
                 <div>
-                  <span className="text-[#7d8590]">Skills:</span>{" "}
+                  <span className="text-[#7d8590]">Configured Skills:</span>{" "}
                   {Object.keys(message.metadata.agent.skills || {}).length >
                   0 ? (
                     <div className="mt-1">
@@ -545,6 +631,28 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                     "No skills configured"
                   )}
                 </div>
+
+                {/* Show autonomous tasks if any */}
+                {message.metadata.autonomousTasks &&
+                  message.metadata.autonomousTasks.length > 0 && (
+                    <div>
+                      <span className="text-[#7d8590]">Autonomous Tasks:</span>{" "}
+                      <span className="text-[#c9d1d9]">
+                        {message.metadata.autonomousTasks.length} task(s)
+                        configured
+                      </span>
+                    </div>
+                  )}
+
+                {/* Show project ID for tracking */}
+                {message.metadata.projectId && (
+                  <div>
+                    <span className="text-[#7d8590]">Project ID:</span>{" "}
+                    <span className="text-[#c9d1d9] font-mono text-xs">
+                      {message.metadata.projectId}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -645,23 +753,53 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       {/* Chat Input */}
       {isAuthenticated && (
         <div className="border-t border-[#30363d] p-4">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Describe the agent you want to create..."
-              className="flex-1 bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-2 text-[#c9d1d9] placeholder-[#8b949e] focus:border-[#58a6ff] focus:outline-none"
-              disabled={loading}
-            />
-            <button
-              onClick={handleSendMessage}
-              disabled={loading || !inputValue.trim()}
-              className="bg-[#238636] text-white px-4 py-2 rounded-lg hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? "Generating..." : "Send"}
-            </button>
+          <div className="space-y-2">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Describe the agent you want to create..."
+                className="flex-1 bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-2 text-[#c9d1d9] placeholder-[#8b949e] focus:border-[#58a6ff] focus:outline-none"
+                disabled={loading}
+                maxLength={1000}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={
+                  loading || !inputValue.trim() || inputValue.trim().length < 10
+                }
+                className="bg-[#238636] text-white px-4 py-2 rounded-lg hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? "Generating..." : "Send"}
+              </button>
+            </div>
+
+            {/* Character count and validation */}
+            <div className="flex justify-between text-xs">
+              <div className="text-[#8b949e]">
+                {inputValue.length < 10 && inputValue.length > 0 && (
+                  <span className="text-[#f85149]">
+                    Minimum 10 characters required
+                  </span>
+                )}
+                {inputValue.length >= 10 && (
+                  <span className="text-[#238636]">Ready to generate</span>
+                )}
+              </div>
+              <div
+                className={`${
+                  inputValue.length > 900
+                    ? "text-[#f85149]"
+                    : inputValue.length > 800
+                    ? "text-[#e3b341]"
+                    : "text-[#8b949e]"
+                }`}
+              >
+                {inputValue.length}/1000
+              </div>
+            </div>
           </div>
         </div>
       )}

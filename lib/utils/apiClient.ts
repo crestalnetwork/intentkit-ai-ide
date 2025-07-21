@@ -3,21 +3,21 @@ import { DEFAULT_CONFIG, STORAGE_KEYS, API_ENDPOINTS } from './config';
 import { showToast } from './toast';
 import logger from './logger';
 
-// Agent Generation API types
+// Agent Generation API types - Updated to match API spec exactly
 export interface AgentGenerateRequest {
-  prompt: string;
-  existing_agent?: Agent;
-  user_id: string;
-  project_id?: string;
+  prompt: string; // 10-1000 characters as per API spec
+  existing_agent?: Agent | null; // Can be null as per API spec
+  user_id: string; // Required as per API spec
+  project_id?: string | null; // Can be null as per API spec
 }
 
 export interface AgentGenerateResponse {
-  agent: Record<string, any>;
-  project_id: string;
-  summary: string;
-  tags: Array<{ id: number }>;
-  autonomous_tasks: Array<Record<string, any>>;
-  activated_skills: Array<string>;
+  agent: Agent; // Complete agent schema as per API spec
+  project_id: string; // Project ID for conversation tracking
+  summary: string; // Human-readable summary
+  tags?: Array<{ id: number }>; // Generated tags as ID objects
+  autonomous_tasks?: Array<Record<string, any>>; // List of autonomous tasks
+  activated_skills?: Array<string>; // List of activated skill names
 }
 
 // Types based on Nation API documentation
@@ -285,10 +285,35 @@ class ApiClient {
   }
 
   public async generateAgent(request: AgentGenerateRequest): Promise<AgentGenerateResponse> {
+    // Validate prompt length as per API spec (10-1000 characters)
+    if (!request.prompt || request.prompt.length < 10 || request.prompt.length > 1000) {
+      throw new Error('Prompt must be between 10 and 1000 characters');
+    }
+
+    // Ensure user_id is provided as it's required
+    if (!request.user_id) {
+      throw new Error('user_id is required for agent generation');
+    }
+
+    logger.info('Generating agent via API', {
+      promptLength: request.prompt.length,
+      hasExistingAgent: !!request.existing_agent,
+      userId: request.user_id,
+      projectId: request.project_id
+    }, 'ApiClient.generateAgent');
+
     const response = await this.client.post<AgentGenerateResponse>(
       API_ENDPOINTS.AGENT_GENERATE,
       request
     );
+
+    logger.info('Agent generation successful', {
+      agentName: response.data.agent.name,
+      projectId: response.data.project_id,
+      activatedSkills: response.data.activated_skills?.length || 0,
+      autonomousTasks: response.data.autonomous_tasks?.length || 0
+    }, 'ApiClient.generateAgent');
+
     return response.data;
   }
 

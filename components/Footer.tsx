@@ -89,10 +89,10 @@ const Footer: React.FC<FooterProps> = ({
   ];
 
   return (
-    <footer className="bg-[#161b22] border-t border-[#30363d] py-1 sm:py-2 sm:py-3">
-      <div className="max-w-full mx-auto px-2 sm:px-3 sm:px-6 flex flex-col sm:flex-row justify-between items-center space-y-1 sm:space-y-2 sm:space-y-0">
+    <footer className="bg-[#161b22] border-t border-[#30363d] py-1">
+      <div className="max-w-full mx-auto px-2 sm:px-4 flex flex-col sm:flex-row justify-between items-center space-y-1 sm:space-y-0">
         {/* Left side - Social Links */}
-        <div className="flex items-center space-x-1 sm:space-x-2 sm:space-x-4 order-2 sm:order-1">
+        <div className="flex items-center space-x-1 sm:space-x-3 order-2 sm:order-1">
           <p className="text-xs text-[#8b949e] mr-1 sm:mr-2 hidden sm:block">
             IntentKit Sandbox
           </p>
@@ -103,7 +103,7 @@ const Footer: React.FC<FooterProps> = ({
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`p-0.5 sm:p-1 sm:p-1.5 text-[${theme.colors.text.tertiary}] hover:text-[${theme.colors.primary.main}] transition-colors duration-200`}
+                className={`p-0.5 text-[${theme.colors.text.tertiary}] hover:text-[${theme.colors.primary.main}] transition-colors duration-200`}
                 title={link.name}
               >
                 <div className="w-3 h-3 sm:w-4 sm:h-4">{link.icon}</div>

@@ -416,10 +416,7 @@ const MiniApp: React.FC = () => {
       </div>
       <div className="flex-1 overflow-hidden min-h-0">
         {createdAgent && (
-          <ChatInterface
-            baseUrl={DEFAULT_BASE_URL}
-            agentName={createdAgent.id!}
-          />
+          <ChatInterface baseUrl={DEFAULT_BASE_URL} agent={createdAgent} />
         )}
       </div>
     </div>

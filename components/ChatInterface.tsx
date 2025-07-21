@@ -10,7 +10,8 @@ import theme from "../lib/utils/theme";
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   baseUrl,
-  agentName,
+  agent,
+  selectedThread,
   onToggleViewMode,
   viewMode = "chat",
 }) => {
@@ -27,7 +28,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [messageHistory, setMessageHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
 
-  logger.component("mounted", "ChatInterface", { baseUrl, agentName });
+  // Get display name and agent ID
+  const agentDisplayName = agent.name || agent.id || "Unknown Agent";
+  const agentId = agent.id!;
+
+  logger.component("mounted", "ChatInterface", {
+    baseUrl,
+    agentId,
+    agentDisplayName,
+  });
 
   // Scroll to bottom of messages
   const scrollToBottom = () => {
@@ -39,32 +48,43 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     scrollToBottom();
   }, [messages]);
 
-  // Initialize chat thread when agent changes
+  // Initialize chat thread when agent changes or when selectedThread is provided
   useEffect(() => {
-    if (agentName) {
-      logger.info(
-        "Initializing chat for agent",
-        { agentName },
-        "ChatInterface.useEffect"
-      );
-      initializeChatThread();
+    if (agentId) {
+      if (selectedThread) {
+        logger.info(
+          "Using provided chat thread",
+          { agentId, threadId: selectedThread.id },
+          "ChatInterface.useEffect"
+        );
+        setChatThread(selectedThread);
+        loadChatMessages(selectedThread.id);
+        setInitializingChat(false);
+      } else {
+        logger.info(
+          "Initializing new chat for agent",
+          { agentId },
+          "ChatInterface.useEffect"
+        );
+        initializeChatThread();
+      }
     }
-  }, [agentName]);
+  }, [agentId, selectedThread]);
 
   const initializeChatThread = async () => {
     logger.info(
       "Starting chat thread initialization",
-      { agentName },
+      { agentId },
       "ChatInterface.initializeChatThread"
     );
     setInitializingChat(true);
 
     try {
       // First, try to get existing chat threads for this agent
-      const threads = await apiClient.getChatThreads(agentName);
+      const threads = await apiClient.getChatThreads(agentId);
       logger.info(
         "Retrieved chat threads",
-        { agentName, threadCount: threads.length },
+        { agentId, threadCount: threads.length },
         "ChatInterface.initializeChatThread"
       );
 
@@ -75,20 +95,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         currentThread = threads[0];
         logger.info(
           "Using existing chat thread",
-          { agentName, threadId: currentThread.id },
+          { agentId, threadId: currentThread.id },
           "ChatInterface.initializeChatThread"
         );
       } else {
         // Create a new thread
         logger.info(
           "Creating new chat thread",
-          { agentName },
+          { agentId },
           "ChatInterface.initializeChatThread"
         );
-        currentThread = await apiClient.createChatThread(agentName);
+        currentThread = await apiClient.createChatThread(agentId);
         logger.info(
           "Created new chat thread",
-          { agentName, threadId: currentThread.id },
+          { agentId, threadId: currentThread.id },
           "ChatInterface.initializeChatThread"
         );
       }
@@ -100,7 +120,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     } catch (error: any) {
       logger.error(
         "Failed to initialize chat thread",
-        { agentName, error: error.message },
+        { agentId, error: error.message },
         "ChatInterface.initializeChatThread"
       );
       console.error("Error initializing chat thread:", error);
@@ -112,19 +132,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const loadChatMessages = async (threadId: string) => {
     logger.info(
       "Loading chat messages",
-      { agentName, threadId },
+      { agentId, threadId },
       "ChatInterface.loadChatMessages"
     );
     try {
       const messagesResponse = await apiClient.getChatMessages(
-        agentName,
+        agentId,
         threadId
       );
       const chatMessages = messagesResponse.data || [];
 
       logger.info(
         "Chat messages loaded",
-        { agentName, threadId, messageCount: chatMessages.length },
+        { agentId, threadId, messageCount: chatMessages.length },
         "ChatInterface.loadChatMessages"
       );
 
@@ -143,7 +163,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     } catch (error: any) {
       logger.error(
         "Failed to load chat messages",
-        { agentName, threadId, error: error.message },
+        { agentId, threadId, error: error.message },
         "ChatInterface.loadChatMessages"
       );
       console.error("Error loading chat messages:", error);
@@ -168,7 +188,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     logger.info(
       "Sending message",
       {
-        agentName,
+        agentId,
         threadId: chatThread.id,
         messageLength: messageContent.length,
       },
@@ -199,7 +219,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
 
       const responseMessages = await apiClient.sendMessage(
-        agentName,
+        agentId,
         chatThread.id,
         messageRequest
       );
@@ -207,7 +227,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       logger.info(
         "Message sent successfully",
         {
-          agentName,
+          agentId,
           threadId: chatThread.id,
           responseCount: responseMessages.length,
         },
@@ -230,7 +250,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       logger.error(
         "Failed to send message",
         {
-          agentName,
+          agentId,
           threadId: chatThread.id,
           error: error.message,
         },
@@ -260,7 +280,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       e.preventDefault();
       logger.debug(
         "Enter key pressed, sending message",
-        { agentName },
+        { agentId },
         "ChatInterface.handleKeyDown"
       );
       sendMessage();
@@ -271,7 +291,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setInputValue(messageHistory[newIndex]);
       logger.debug(
         "Message history navigation up",
-        { newIndex, agentName },
+        { newIndex, agentId },
         "ChatInterface.handleKeyDown"
       );
     } else if (e.key === "ArrowDown") {
@@ -282,7 +302,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setInputValue(messageHistory[newIndex]);
         logger.debug(
           "Message history navigation down",
-          { newIndex, agentName },
+          { newIndex, agentId },
           "ChatInterface.handleKeyDown"
         );
       } else if (historyIndex === 0) {
@@ -290,7 +310,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         setInputValue("");
         logger.debug(
           "Message history cleared",
-          { agentName },
+          { agentId },
           "ChatInterface.handleKeyDown"
         );
       }
@@ -330,7 +350,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
       >
         <div
-          className={`max-w-[85%] sm:max-w-[70%] rounded-lg px-3 sm:px-4 py-2 ${
+          className={`max-w-[85%] sm:max-w-[70%] rounded px-2 py-1 ${
             isUser
               ? "bg-[#0969da] text-white"
               : isSystem
@@ -375,20 +395,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   if (initializingChat) {
     return (
       <div
-        className={`bg-[${theme.colors.background.primary}] sm:rounded-xl sm:border border-[${theme.colors.border.primary}] flex flex-col h-full overflow-hidden`}
+        className={`bg-[${theme.colors.background.primary}] sm:rounded-xl sm:border border-[#30363d] flex flex-col h-full overflow-hidden`}
       >
         <div
-          className={`p-2 sm:p-3 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[${theme.colors.border.primary}] flex justify-between items-center`}
+          className={`p-2 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[#30363d] flex justify-between items-center`}
         >
           <div>
             <h2 className="text-base sm:text-lg font-semibold">
-              Chat with {agentName}
+              Chat with {agentDisplayName}
             </h2>
           </div>
           {onToggleViewMode && (
             <button
               onClick={onToggleViewMode}
-              className={`inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] rounded-lg border border-[${theme.colors.border.secondary}] hover:bg-[${theme.colors.border.secondary}]/50 hover:border-[${theme.colors.border.tertiary}] transition-all duration-200`}
+              className={`inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[#161b22] text-[${theme.colors.text.secondary}] rounded-lg border border-[#30363d] hover:bg-[#21262d] hover:border-[#8b949e] transition-all duration-200`}
             >
               <svg
                 className="w-3 h-3 sm:w-4 sm:h-4"
@@ -415,7 +435,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div
-              className={`animate-spin rounded-full h-8 w-8 border-2 border-[${theme.colors.border.secondary}] border-t-[${theme.colors.primary.main}] mb-4 mx-auto`}
+              className={`animate-spin rounded-full h-8 w-8 border-2 border-[#21262d] border-t-[${theme.colors.primary.main}] mb-4 mx-auto`}
             ></div>
             <p className={`text-[${theme.colors.text.tertiary}]`}>
               Initializing chat...
@@ -431,11 +451,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       className={`bg-[${theme.colors.background.primary}] sm:rounded-xl sm:border border-[${theme.colors.border.primary}] flex flex-col h-full overflow-hidden`}
     >
       <div
-        className={`p-2 sm:p-3 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[${theme.colors.border.primary}] flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0`}
+        className={`p-2 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[#30363d] flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-1 sm:space-y-0`}
       >
         <div className="flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-semibold truncate">
-            Chat with {agentName}
+            Chat with {agentDisplayName}
           </h2>
           {chatThread && (
             <p
@@ -445,10 +465,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </p>
           )}
         </div>
-        {onToggleViewMode && (
+        <div className="flex items-center space-x-2">
           <button
-            onClick={onToggleViewMode}
-            className={`inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] rounded-lg border border-[${theme.colors.border.secondary}] hover:bg-[${theme.colors.border.secondary}]/50 hover:border-[${theme.colors.border.tertiary}] transition-all duration-200 whitespace-nowrap`}
+            onClick={() => {
+              // Start a new chat - clear current thread and create new one
+              setChatThread(null);
+              setMessages([]);
+              initializeChatThread();
+              logger.info(
+                "Starting new chat",
+                { agentId },
+                "ChatInterface.newChat"
+              );
+            }}
+            className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-all duration-200 whitespace-nowrap"
           >
             <svg
               className="w-3 h-3 sm:w-4 sm:h-4"
@@ -460,28 +490,51 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline">
-              {viewMode === "chat" ? "View Details" : "Back to Chat"}
-            </span>
-            <span className="sm:hidden">
-              {viewMode === "chat" ? "Details" : "Chat"}
-            </span>
+            <span className="hidden sm:inline">New Chat</span>
+            <span className="sm:hidden">New</span>
           </button>
-        )}
+
+          {onToggleViewMode && (
+            <button
+              onClick={onToggleViewMode}
+              className={`inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[#161b22] text-[${theme.colors.text.secondary}] rounded border border-[#30363d] hover:bg-[#21262d] hover:border-[#8b949e] transition-all duration-200 whitespace-nowrap`}
+            >
+              <svg
+                className="w-3 h-3 sm:w-4 sm:h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <span className="hidden sm:inline">
+                {viewMode === "chat" ? "View Details" : "Back to Chat"}
+              </span>
+              <span className="sm:hidden">
+                {viewMode === "chat" ? "Details" : "Chat"}
+              </span>
+            </button>
+          )}
+        </div>
       </div>
       <div
         ref={chatContainerRef}
-        className="flex-1 overflow-y-auto p-2 sm:p-3 sm:p-4 space-y-3 min-h-0"
+        className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0"
       >
         {messages.length === 0 && !loading && (
           <div className="flex items-center justify-center h-full text-center">
             <div>
               <div className="text-4xl mb-4">💬</div>
               <h3 className="text-lg font-medium text-[#c9d1d9] mb-2">
-                Start chatting with {agentName}
+                Start chatting with {agentDisplayName}
               </h3>
               <p className="text-sm text-[#8b949e]">
                 Type a message below to begin the conversation
@@ -493,7 +546,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {loading && renderTypingIndicator()}
         <div ref={messagesEndRef} />
       </div>
-      <div className="border-t border-[#30363d] p-2 sm:p-3 flex-shrink-0">
+      <div className="border-t border-[#30363d] p-2 flex-shrink-0">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <input
             ref={inputRef}

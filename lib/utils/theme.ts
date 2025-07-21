@@ -34,9 +34,9 @@ export const theme = {
     
     // Border colors
     border: {
-      primary: '#d0ff16/20',     // Primary border
-      secondary: '#374151',      // Secondary border (gray-700)
-      tertiary: '#adadad',       // Tertiary border (gray-600)
+      primary: '#30363d',        // Primary border (subtle grey)
+      secondary: '#21262d',      // Secondary border (darker grey)
+      tertiary: '#8b949e',       // Tertiary border (medium grey for contrast)
     },
     
     // State colors

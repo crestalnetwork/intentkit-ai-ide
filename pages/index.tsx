@@ -3,12 +3,13 @@ import Head from "next/head";
 import Link from "next/link";
 import { showToast } from "../lib/utils/toast";
 import ChatInterface from "../components/ChatInterface";
-import AgentsList from "../components/AgentsList";
+import ConversationsList from "../components/ConversationsList";
+import AgentSelector from "../components/AgentSelector";
 import AgentDetail from "../components/AgentDetail";
 import Settings from "../components/Settings";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { Agent } from "../lib/types";
+import { Agent, ChatThread } from "../lib/utils/apiClient";
 import apiClient from "../lib/utils/apiClient";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
@@ -18,7 +19,9 @@ import theme from "../lib/utils/theme";
 const Home: React.FC = (): JSX.Element => {
   const [baseUrl, setBaseUrl] = useState<string>("");
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [viewMode, setViewMode] = useState<"chat" | "details">("chat");
+  const [showAgentSelector, setShowAgentSelector] = useState<boolean>(false);
   const { isAuthenticated } = useSupabaseAuth();
 
   logger.component("mounted", "Home");
@@ -122,7 +125,27 @@ const Home: React.FC = (): JSX.Element => {
       "Home.handleAgentSelect"
     );
     setSelectedAgent(agent);
-    // Default to chat view when selecting an agent
+    setSelectedThread(null); // Clear current thread when switching agents
+    setViewMode("chat");
+  };
+
+  const handleThreadSelect = (thread: ChatThread) => {
+    logger.info(
+      "Thread selected",
+      { threadId: thread.id, agentId: thread.agent_id },
+      "Home.handleThreadSelect"
+    );
+    setSelectedThread(thread);
+    setViewMode("chat");
+  };
+
+  const handleNewChat = () => {
+    logger.info(
+      "Starting new chat",
+      { agentId: selectedAgent?.id },
+      "Home.handleNewChat"
+    );
+    setSelectedThread(null); // Clear current thread to start fresh
     setViewMode("chat");
   };
 
@@ -187,14 +210,17 @@ const Home: React.FC = (): JSX.Element => {
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
-        <div className="max-w-full h-full px-4 py-3">
-          <div className="grid grid-cols-12 gap-4 h-full">
-            {/* Sidebar - Agent List */}
-            <div className="col-span-12 sm:col-span-5 md:col-span-4 lg:col-span-3 h-full overflow-hidden agent-list-container">
-              <AgentsList
+        <div className="max-w-full h-full px-3 py-2">
+          <div className="grid grid-cols-12 gap-3 h-full">
+            {/* Sidebar - Conversations List */}
+            <div className="col-span-12 sm:col-span-5 md:col-span-4 lg:col-span-3 h-full overflow-hidden">
+              <ConversationsList
                 baseUrl={baseUrl}
-                onAgentSelect={handleAgentSelect}
-                selectedAgentId={selectedAgent?.id}
+                selectedAgent={selectedAgent}
+                selectedThreadId={selectedThread?.id}
+                onThreadSelect={handleThreadSelect}
+                onNewChat={handleNewChat}
+                onAgentSelect={() => setShowAgentSelector(true)}
               />
             </div>
 
@@ -204,7 +230,8 @@ const Home: React.FC = (): JSX.Element => {
                 viewMode === "chat" ? (
                   <ChatInterface
                     baseUrl={baseUrl}
-                    agentName={selectedAgent.id!}
+                    agent={selectedAgent}
+                    selectedThread={selectedThread}
                     onToggleViewMode={toggleViewMode}
                     viewMode={viewMode}
                   />
@@ -250,6 +277,15 @@ const Home: React.FC = (): JSX.Element => {
           </div>
         </div>
       </main>
+
+      {/* Agent Selector Modal */}
+      <AgentSelector
+        baseUrl={baseUrl}
+        selectedAgentId={selectedAgent?.id}
+        onAgentSelect={handleAgentSelect}
+        onClose={() => setShowAgentSelector(false)}
+        isOpen={showAgentSelector}
+      />
 
       {/* Footer */}
       <Footer baseUrl={baseUrl} showConnectionStatus={true} />

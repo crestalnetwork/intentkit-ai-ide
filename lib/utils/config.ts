@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
   AGENTS: "/agents",
   AGENT_BY_ID: (id: string) => `/agents/${id}`,
   AGENT_VALIDATE: "/agent/validate",
-  AGENT_GENERATE: "/agent/generate",
+  AGENT_GENERATE: "generator/agent/generate",
   AGENT_CHATS: (agentId: string) => `/agents/${agentId}/chats`,
   AGENT_CHAT_BY_ID: (agentId: string, chatId: string) => `/agents/${agentId}/chats/${chatId}`,
   AGENT_CHAT_MESSAGES: (agentId: string, chatId: string) => `/agents/${agentId}/chats/${chatId}/messages`,

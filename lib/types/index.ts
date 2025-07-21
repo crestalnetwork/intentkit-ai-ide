@@ -88,7 +88,8 @@ export interface AgentsListProps {
 
 export interface ChatInterfaceProps {
   baseUrl: string;
-  agentName: string;
+  agent: Agent;
+  selectedThread?: any; // ChatThread from apiClient
   onToggle?: (isOpen: boolean) => void;
   isOpen?: boolean;
   onToggleViewMode?: () => void;

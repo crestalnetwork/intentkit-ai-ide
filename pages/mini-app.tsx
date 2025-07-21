@@ -110,7 +110,7 @@ const MiniApp: React.FC = () => {
           templateId: template.id,
           projectId: response.project_id,
           agentName: response.agent.name,
-          skillsCount: response.activated_skills.length,
+          skillsCount: response.activated_skills?.length || 0,
           userId: user.id,
         },
         "MiniApp.createAgentFromTemplate"
@@ -118,11 +118,11 @@ const MiniApp: React.FC = () => {
 
       // Convert the generated agent to our Agent type
       const generatedAgent: Agent = {
+        ...response.agent,
         name: response.agent.name || template.name,
         purpose: response.agent.purpose || template.description,
         personality: response.agent.personality || "Helpful and friendly",
         principles: response.agent.principles || "Be accurate and helpful",
-        ...response.agent,
         owner: user.id,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),

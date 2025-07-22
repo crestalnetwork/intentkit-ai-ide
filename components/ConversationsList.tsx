@@ -124,25 +124,6 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
           <h2 className="text-sm font-semibold text-[#ffffff]">
             Conversations
           </h2>
-          <button
-            onClick={onNewChat}
-            className="p-1 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-colors"
-            title="New conversation"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
-          </button>
         </div>
 
         {/* Agent Selector */}

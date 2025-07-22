@@ -10,11 +10,11 @@ import Footer from "../components/Footer";
 import { AgentTemplate } from "../lib/utils/templates";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
+import theme from "../lib/utils/theme";
 
 const CreateAgentPage: React.FC = () => {
   const router = useRouter();
   const [baseUrl, setBaseUrl] = useState<string>("");
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [showTemplateSelector, setShowTemplateSelector] =
     useState<boolean>(false);
   const [selectedTemplate, setSelectedTemplate] = useState<
@@ -34,7 +34,7 @@ const CreateAgentPage: React.FC = () => {
   const handleAgentCreated = (agent: Record<string, any>) => {
     console.log("Agent deployed successfully:", agent);
     const agentName = agent.name || "Unnamed Agent";
-    setSuccessMessage(`🎉 Agent "${agentName}" deployed successfully!`);
+    showToast.success(`🎉 Agent "${agentName}" deployed successfully!`);
 
     // Redirect to main page after 3 seconds to see the new agent
     setTimeout(() => {
@@ -47,41 +47,10 @@ const CreateAgentPage: React.FC = () => {
     setShowTemplateSelector(false);
   };
 
-  const handleShowTemplateSelector = () => {
-    setShowTemplateSelector(true);
-  };
-
-  const handleGetApiKey = () => {
-    showToast.info("🔑 API Key management coming soon!");
-  };
-
-  // Prepare right actions for the header
-  const rightActions = (
-    <>
-      <button
-        onClick={handleShowTemplateSelector}
-        className="text-sm py-1.5 px-3 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-colors"
-      >
-        📋 Use Template
-      </button>
-      {successMessage && (
-        <div className="text-green-400 text-sm font-medium py-1 px-2 bg-green-400/10 rounded border border-green-400/20">
-          {successMessage}
-        </div>
-      )}
-      <button
-        onClick={handleGetApiKey}
-        className="text-sm py-1.5 px-3 bg-[#0969da] text-white rounded hover:bg-[#0550ae] transition-colors"
-      >
-        🔑 Get API Key
-      </button>
-    </>
-  );
-
   return (
     <div className="min-h-screen bg-[#0d1117] flex flex-col h-screen">
       <Head>
-        <title>Create Agent - IntentKit Sandbox</title>
+        <title>Create Agent - IntentKit AI</title>
         <meta
           name="description"
           content="Create a new IntentKit agent with AI assistance"
@@ -96,7 +65,6 @@ const CreateAgentPage: React.FC = () => {
           href: "/",
           label: "Back to Sandbox",
         }}
-        rightActions={rightActions}
         showBaseUrl={false}
         baseUrl={baseUrl}
       />
@@ -110,8 +78,8 @@ const CreateAgentPage: React.FC = () => {
               a streamlined experience.
             </p>
             <Link
-              href="/mini-app"
-              className="text-sm py-1.5 px-3 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-colors"
+              href="/quick"
+              className={`text-sm py-1.5 px-3 bg-[${theme.colors.primary.main}] text-[${theme.colors.text.onPrimary}] rounded hover:bg-[${theme.colors.primary.hover}] transition-colors`}
             >
               Go to Quick Creator
             </Link>

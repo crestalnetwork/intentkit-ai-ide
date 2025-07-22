@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { showToast } from "../lib/utils/toast";
 import logger from "../lib/utils/logger";
+import AuthModal from "./AuthModal";
 import theme from "../lib/utils/theme";
 import Settings from "./Settings";
 
@@ -33,14 +34,10 @@ const Header: React.FC<HeaderProps> = ({
     signIn,
     signUp,
     signOut,
-    error: authError,
   } = useSupabaseAuth();
 
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -78,57 +75,6 @@ const Header: React.FC<HeaderProps> = ({
     return user.email || user.user_metadata?.name || "User";
   };
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !password) {
-      logger.warn(
-        "Auth form submitted with missing fields",
-        { hasEmail: !!email, hasPassword: !!password },
-        "Header.handleAuth"
-      );
-      showToast.error("Please fill in all fields");
-      return;
-    }
-
-    logger.info(
-      "Auth form submitted",
-      { email, isSignUp },
-      "Header.handleAuth"
-    );
-
-    try {
-      if (isSignUp) {
-        await signUp(email, password);
-        logger.info(
-          "Sign up completed from header",
-          { email },
-          "Header.handleAuth"
-        );
-        showToast.success(
-          "Account created! Please check your email for verification."
-        );
-      } else {
-        await signIn(email, password);
-        logger.info(
-          "Sign in completed from header",
-          { email },
-          "Header.handleAuth"
-        );
-        showToast.success("Signed in successfully!");
-      }
-      setShowAuthModal(false);
-      setEmail("");
-      setPassword("");
-    } catch (error: any) {
-      logger.error(
-        "Auth error from header",
-        { email, isSignUp, error: error.message },
-        "Header.handleAuth"
-      );
-      showToast.error(error.message || "Authentication failed");
-    }
-  };
-
   const handleSignOut = async () => {
     logger.info(
       "Sign out initiated from header",
@@ -157,15 +103,6 @@ const Header: React.FC<HeaderProps> = ({
   const handleCloseAuthModal = () => {
     logger.debug("Auth modal closed", {}, "Header.handleCloseAuthModal");
     setShowAuthModal(false);
-  };
-
-  const handleToggleSignUp = () => {
-    logger.debug(
-      "Auth mode toggled",
-      { newMode: !isSignUp ? "signUp" : "signIn" },
-      "Header.handleToggleSignUp"
-    );
-    setIsSignUp(!isSignUp);
   };
 
   const handleGetApiKey = () => {
@@ -249,15 +186,6 @@ const Header: React.FC<HeaderProps> = ({
                   onClick={() => setShowProfileDropdown(!showProfileDropdown)}
                   className="flex items-center space-x-2 sm:space-x-3 bg-black/30 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-[#d0ff16]/20 hover:bg-black/50 hover:border-[#d0ff16]/40 transition-all duration-200"
                 >
-                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-[#d0ff16]/20 rounded-full flex items-center justify-center">
-                    <svg
-                      className="w-3 h-3 sm:w-4 sm:h-4 text-[#d0ff16]"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
-                    </svg>
-                  </div>
                   <span className="text-xs sm:text-sm font-medium text-white hidden sm:inline truncate max-w-24 sm:max-w-none">
                     {getUserDisplayName()}
                   </span>
@@ -305,7 +233,7 @@ const Header: React.FC<HeaderProps> = ({
                         </div>
                       </div>
                       <Link
-                        href="/mini-app"
+                        href="/quick"
                         onClick={() => setShowProfileDropdown(false)}
                         className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-white hover:bg-[#d0ff16]/10 transition-colors"
                       >
@@ -427,77 +355,7 @@ const Header: React.FC<HeaderProps> = ({
       </header>
 
       {/* Authentication Modal */}
-      {showAuthModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-black border border-[#d0ff16]/30 rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-white">
-                {isSignUp ? "Create Account" : "Welcome Back"}
-              </h2>
-              <button
-                onClick={handleCloseAuthModal}
-                className="text-gray-400 hover:text-[#d0ff16] text-2xl transition-colors"
-              >
-                ×
-              </button>
-            </div>
-
-            {authError && (
-              <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-4 mb-6">
-                <p className="text-red-400 text-sm">{authError}</p>
-              </div>
-            )}
-
-            <form onSubmit={handleAuth} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full p-3 bg-black/50 border border-[#d0ff16]/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d0ff16]/50 focus:border-[#d0ff16] transition-all"
-                  placeholder="Enter your email"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-white mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full p-3 bg-black/50 border border-[#d0ff16]/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d0ff16]/50 focus:border-[#d0ff16] transition-all"
-                  placeholder="Enter your password"
-                  required
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3 px-4 bg-[#d0ff16] text-black font-semibold rounded-lg hover:bg-[#d0ff16]/90 hover:shadow-lg hover:shadow-[#d0ff16]/20 transition-all duration-200"
-              >
-                {isSignUp ? "Create Account" : "Sign In"}
-              </button>
-            </form>
-
-            <div className="mt-6 text-center">
-              <button
-                onClick={handleToggleSignUp}
-                className="text-sm text-[#d0ff16] hover:text-[#d0ff16]/80 transition-colors"
-              >
-                {isSignUp
-                  ? "Already have an account? Sign in"
-                  : "Don't have an account? Sign up"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
     </>
   );
 };

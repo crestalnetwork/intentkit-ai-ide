@@ -25,7 +25,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
 
   useEffect(() => {
     logger.info(
-      "Base URL changed, fetching agents",
+      "Base URL changed, fetching user agents",
       { baseUrl },
       "AgentsList.useEffect"
     );
@@ -34,7 +34,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
 
   useEffect(() => {
     logger.info(
-      "Authentication status changed",
+      "Authentication status changed, fetching user agents",
       { isAuthenticated },
       "AgentsList.useEffect"
     );
@@ -43,7 +43,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
 
   const fetchAgents = async () => {
     logger.info(
-      "Starting agent fetch",
+      "Starting user agent fetch",
       { isAuthenticated, baseUrl },
       "AgentsList.fetchAgents"
     );
@@ -62,10 +62,14 @@ const AgentsList: React.FC<AgentsListProps> = ({
         return;
       }
 
-      logger.debug("Calling API to get agents", {}, "AgentsList.fetchAgents");
-      const response = await apiClient.getAgents({ limit: 50 });
+      logger.debug(
+        "Calling API to get user agents",
+        {},
+        "AgentsList.fetchAgents"
+      );
+      const response = await apiClient.getUserAgents({ limit: 50 });
       logger.info(
-        "Agents fetched successfully",
+        "User agents fetched successfully",
         {
           count: response.data.length,
           hasMore: response.has_more,
@@ -84,9 +88,11 @@ const AgentsList: React.FC<AgentsListProps> = ({
       );
     } catch (err: any) {
       const errorMessage =
-        err.response?.data?.message || err.message || "Failed to fetch agents";
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to fetch your agents";
       logger.error(
-        "Failed to fetch agents",
+        "Failed to fetch user agents",
         {
           error: errorMessage,
           status: err.response?.status,
@@ -95,13 +101,13 @@ const AgentsList: React.FC<AgentsListProps> = ({
         "AgentsList.fetchAgents"
       );
 
-      console.error("Error fetching agents:", err);
+      console.error("Error fetching user agents:", err);
       setError(errorMessage);
 
       if (err.response?.status === 401) {
         showToast.error("Authentication expired. Please sign in again.");
       } else {
-        showToast.error(`Failed to load agents: ${errorMessage}`);
+        showToast.error(`Failed to load your agents: ${errorMessage}`);
       }
     } finally {
       setLoading(false);
@@ -109,7 +115,11 @@ const AgentsList: React.FC<AgentsListProps> = ({
   };
 
   const refreshAgents = () => {
-    logger.info("Manual refresh triggered", {}, "AgentsList.refreshAgents");
+    logger.info(
+      "Manual refresh of user agents triggered",
+      {},
+      "AgentsList.refreshAgents"
+    );
     fetchAgents();
   };
 
@@ -188,7 +198,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center">
             <p className="text-[#8b949e] text-sm mb-3">
-              Please sign in to view agents
+              Please sign in to view your agents
             </p>
             <div className="text-xs text-[#8b949e]">
               Use the sign in button in the header to get started
@@ -277,7 +287,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
           <h2
             className={`text-lg font-semibold text-[${theme.colors.text.primary}]`}
           >
-            Agents
+            My Agents
           </h2>
           <button
             onClick={refreshAgents}
@@ -300,26 +310,28 @@ const AgentsList: React.FC<AgentsListProps> = ({
           </button>
         </div>
         <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg
+              className={`h-4 w-4 text-[${theme.colors.text.tertiary}]`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+              />
+            </svg>
+          </div>
           <input
             type="text"
-            placeholder="Search agents..."
             value={searchQuery}
             onChange={handleSearchChange}
-            className="w-full pl-9 pr-4 py-2.5 bg-black/50 border border-[#d0ff16]/30 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-[#d0ff16]/50 focus:border-[#d0ff16] transition-all"
+            className={`w-full pl-10 pr-4 py-2 bg-[${theme.colors.background.tertiary}] border border-[${theme.colors.border.primary}] rounded-lg text-[${theme.colors.text.primary}] text-sm focus:outline-none focus:ring-1 focus:ring-[${theme.colors.primary.main}] focus:border-[${theme.colors.primary.main}] transition-all duration-200`}
+            placeholder="Search your agents..."
           />
-          <svg
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[${theme.colors.text.tertiary}]`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-            />
-          </svg>
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
@@ -385,10 +397,15 @@ const AgentsList: React.FC<AgentsListProps> = ({
                   </svg>
                 )}
               </div>
-              <p className="text-[#8b949e] text-sm mb-4 leading-relaxed">
+              <p className="text-sm text-[#8b949e] mb-4 leading-relaxed">
                 {searchQuery
-                  ? "No agents match your search criteria"
-                  : "No agents found"}
+                  ? "No agents found matching your search"
+                  : "You haven't created any agents yet"}
+              </p>
+              <p className="text-xs text-[#6b7280] mb-4">
+                {searchQuery
+                  ? "Try adjusting your search terms or create a new agent"
+                  : "Create your first agent to get started"}
               </p>
               {searchQuery && (
                 <button

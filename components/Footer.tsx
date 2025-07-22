@@ -94,7 +94,7 @@ const Footer: React.FC<FooterProps> = ({
         {/* Left side - Social Links */}
         <div className="flex items-center space-x-1 sm:space-x-3 order-2 sm:order-1">
           <p className="text-xs text-[#8b949e] mr-1 sm:mr-2 hidden sm:block">
-            IntentKit Sandbox
+            IntentKit AI
           </p>
           <div className="flex items-center space-x-1 sm:space-x-2">
             {socialLinks.map((link) => (

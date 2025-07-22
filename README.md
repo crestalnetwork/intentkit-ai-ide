@@ -1,4 +1,4 @@
-# IntentKit Sandbox UI
+# IntentKit AI
 
 A modern web interface for creating, managing, and chatting with IntentKit agents. Built with Next.js, TypeScript, and integrated with the Nation API for agent management and Supabase for authentication.
 
@@ -43,8 +43,8 @@ A modern web interface for creating, managing, and chatting with IntentKit agent
 3. **Create Agent**: Use templates for quick creation or create custom agents
 4. **Chat**: Start conversations with any agent
 
-### Mini-App (Mobile Optimized)
-1. Visit `/mini-app` for mobile-first experience
+### Quick Creator (Mobile Optimized)
+1. Visit `/quick` for mobile-first experience
 2. Sign in with your account
 3. Select a template to instantly create and chat with an agent
 4. Streamlined flow: Template → Create → Chat

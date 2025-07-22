@@ -15,6 +15,7 @@ import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
 import logger from "../lib/utils/logger";
 import theme from "../lib/utils/theme";
+import AuthModal from "../components/AuthModal";
 
 const Home: React.FC = (): JSX.Element => {
   const [baseUrl, setBaseUrl] = useState<string>("");
@@ -24,7 +25,11 @@ const Home: React.FC = (): JSX.Element => {
   const [showAgentSelector, setShowAgentSelector] = useState<boolean>(false);
   const [conversationRefreshKey, setConversationRefreshKey] =
     useState<number>(0);
-  const { isAuthenticated } = useSupabaseAuth();
+
+  // Auth modal states
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const { isAuthenticated, user, signIn, signUp } = useSupabaseAuth();
 
   logger.component("mounted", "Home");
 
@@ -176,6 +181,15 @@ const Home: React.FC = (): JSX.Element => {
     showToast.info("API Key management coming soon!");
   };
 
+  const handleCloseAuthModal = () => {
+    logger.debug(
+      "Auth modal closed from home",
+      {},
+      "Home.handleCloseAuthModal"
+    );
+    setShowAuthModal(false);
+  };
+
   // Prepare right actions for the header
   const rightActions = (
     <>
@@ -183,12 +197,7 @@ const Home: React.FC = (): JSX.Element => {
         href="/create-agent"
         className={`inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[${theme.colors.primary.main}] text-[${theme.colors.text.onPrimary}] font-medium rounded-lg hover:bg-[${theme.colors.primary.hover}] hover:shadow-lg hover:shadow-[${theme.colors.primary.shadow}] transition-all duration-200`}
       >
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-4 h-4" fill="none" stroke="black" viewBox="0 0 24 24">
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -196,7 +205,7 @@ const Home: React.FC = (): JSX.Element => {
             d="M12 4v16m8-8H4"
           />
         </svg>
-        <span>Create Agent</span>
+        <span className="text-sm text-black">Create Agent</span>
       </Link>
     </>
   );
@@ -206,14 +215,14 @@ const Home: React.FC = (): JSX.Element => {
       className={`min-h-screen bg-[${theme.colors.background.primary}] flex flex-col h-screen`}
     >
       <Head>
-        <title>IntentKit Sandbox</title>
+        <title>IntentKit AI</title>
         <meta name="description" content="Chat with your IntentKit agents" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       {/* Header */}
       <Header
-        title="IntentKit Sandbox"
+        title="IntentKit AI"
         rightActions={rightActions}
         showBaseUrl={false}
         baseUrl={baseUrl}
@@ -278,12 +287,12 @@ const Home: React.FC = (): JSX.Element => {
                       : "Please sign in to view and chat with agents."}
                   </p>
                   {!isAuthenticated && (
-                    <Link
-                      href="/mini-app"
-                      className="mt-4 inline-flex items-center px-4 py-2 bg-[#238636] text-white text-sm rounded-lg hover:bg-[#2ea043] transition-colors"
+                    <button
+                      onClick={() => setShowAuthModal(true)}
+                      className={`mt-4 inline-flex items-center px-4 py-2 bg-[${theme.colors.primary.main}] text-black text-sm rounded-lg hover:bg-[${theme.colors.primary.hover}] transition-colors`}
                     >
                       Sign In & Get Started
-                    </Link>
+                    </button>
                   )}
                 </div>
               )}
@@ -300,6 +309,9 @@ const Home: React.FC = (): JSX.Element => {
         onClose={() => setShowAgentSelector(false)}
         isOpen={showAgentSelector}
       />
+
+      {/* Auth Modal */}
+      <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
 
       {/* Footer */}
       <Footer baseUrl={baseUrl} showConnectionStatus={true} />

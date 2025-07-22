@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
 import { createClient, SupabaseClient, Session, User } from '@supabase/supabase-js';
-import { showToast } from '../lib/utils/toast';
 import { STORAGE_KEYS } from '../lib/utils/config';
 import logger from '../lib/utils/logger';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
 
 let supabase: SupabaseClient | null = null;
 if (supabaseUrl && supabaseAnonKey) {

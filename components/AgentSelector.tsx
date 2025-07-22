@@ -68,15 +68,15 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
   }, [isOpen, onClose]);
 
   const loadAgents = async () => {
-    logger.info("Loading agents", {}, "AgentSelector.loadAgents");
+    logger.info("Loading user agents", {}, "AgentSelector.loadAgents");
 
     setLoading(true);
     setError(null);
 
     try {
-      const response = await apiClient.getAgents({ limit: 100 });
+      const response = await apiClient.getUserAgents({ limit: 100 });
       logger.info(
-        "Agents loaded",
+        "User agents loaded",
         { agentCount: response.data.length },
         "AgentSelector.loadAgents"
       );
@@ -84,13 +84,13 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
       setAgents(response.data);
     } catch (error: any) {
       logger.error(
-        "Failed to load agents",
+        "Failed to load user agents",
         { error: error.message },
         "AgentSelector.loadAgents"
       );
 
-      console.error("Error loading agents:", error);
-      setError("Failed to load agents");
+      console.error("Error loading user agents:", error);
+      setError("Failed to load your agents");
       setAgents([]);
     } finally {
       setLoading(false);
@@ -126,7 +126,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         <div className="p-3 border-b border-[#30363d]">
           <div className="flex items-center justify-between mb-2">
             <h2 className="text-lg font-semibold text-[#ffffff]">
-              Select Agent
+              Select Your Agent
             </h2>
             <button
               onClick={onClose}
@@ -168,7 +168,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search agents..."
+              placeholder="Search your agents..."
               className="w-full pl-10 pr-4 py-2 bg-[#0d1117] border border-[#30363d] rounded text-[#ffffff] text-sm focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff] transition-all"
             />
           </div>
@@ -199,11 +199,18 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
             <div className="text-center py-8">
               <div className="text-4xl mb-4">🔍</div>
               <p className="text-sm text-[#8b949e] mb-2">
-                {searchTerm ? "No agents found" : "No agents available"}
+                {searchTerm
+                  ? "No agents found"
+                  : "You haven't created any agents yet"}
               </p>
               {searchTerm && (
                 <p className="text-xs text-[#6b7280]">
                   Try adjusting your search terms
+                </p>
+              )}
+              {!searchTerm && (
+                <p className="text-xs text-[#6b7280]">
+                  Create your first agent to get started
                 </p>
               )}
             </div>
@@ -248,24 +255,50 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
                         </p>
                       )}
 
-                      <div className="flex items-center space-x-3 text-xs opacity-60">
-                        {agent.model && (
-                          <span className="bg-[#21262d] px-2 py-1 rounded">
-                            {agent.model}
-                          </span>
-                        )}
-                        {agent.skills &&
-                          Object.keys(agent.skills).length > 0 && (
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3 text-xs opacity-60">
+                          {agent.model && (
                             <span className="bg-[#21262d] px-2 py-1 rounded">
-                              {Object.keys(agent.skills).length} skills
+                              {agent.model}
                             </span>
                           )}
-                        {agent.created_at && (
-                          <span>
-                            Created{" "}
-                            {new Date(agent.created_at).toLocaleDateString()}
+                          {agent.skills &&
+                            Object.keys(agent.skills).length > 0 && (
+                              <span className="bg-[#21262d] px-2 py-1 rounded">
+                                {Object.keys(agent.skills).length} skills
+                              </span>
+                            )}
+                          {agent.created_at && (
+                            <span>
+                              Created{" "}
+                              {new Date(agent.created_at).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center space-x-1 text-xs">
+                          <svg
+                            className="w-3 h-3"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                            />
+                          </svg>
+                          <span
+                            className={`font-medium ${
+                              selectedAgentId === agent.id
+                                ? "text-white"
+                                : "text-[#58a6ff]"
+                            }`}
+                          >
+                            Chat Now
                           </span>
-                        )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -278,7 +311,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         {/* Footer */}
         <div className="p-2 border-t border-[#30363d] text-center">
           <p className="text-xs text-[#8b949e]">
-            Select an agent to start chatting • Press Esc to close
+            Select one of your agents to start chatting • Press Esc to close
           </p>
         </div>
       </div>

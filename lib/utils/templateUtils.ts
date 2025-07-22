@@ -1,25 +1,30 @@
 import { AgentTemplate } from "./templates";
+import { Agent } from "./apiClient";
 
 export function templateToPrompt(template: AgentTemplate): string {
   const skillsList = Object.keys(template.skills).join(", ");
   
-  return `Create an agent with EXACTLY these specifications - do not add any additional skills:
+  return `Create a ${template.category} agent: ${template.baseConfig.name}
 
-Name: ${template.baseConfig.name}
+${template.description}
+
 Purpose: ${template.baseConfig.purpose}
 Personality: ${template.baseConfig.personality}
 Principles: ${template.baseConfig.principles}
 
-IMPORTANT: Enable ONLY these skills and no others: ${skillsList}
+Skills: ${skillsList}
+Model: ${template.baseConfig.model || "gpt-4.1-nano"}
 
-Do not add token, twitter, http, carv, system, or any other skills unless they are explicitly listed above. Use only the specified skills: ${skillsList}
-
-Configure the agent exactly as specified with only these skills enabled and configured appropriately.`;
+Configure exactly as specified with only these skills enabled.`;
 }
 
-export function templateToAgentConfig(template: AgentTemplate, userWalletAddress?: string): Record<string, any> {
+export function templateToAgentConfig(template: AgentTemplate, userWalletAddress?: string): Agent {
   return {
-    ...template.baseConfig,
+    name: template.baseConfig.name,
+    description: template.description,
+    purpose: template.baseConfig.purpose,
+    personality: template.baseConfig.personality,
+    principles: template.baseConfig.principles,
     skills: template.skills,
     owner: userWalletAddress,
     mode: "private", // Default to private for template-based agents
@@ -27,5 +32,11 @@ export function templateToAgentConfig(template: AgentTemplate, userWalletAddress
     wallet_provider: "cdp",
     network_id: "base-mainnet",
     cdp_network_id: "base-mainnet",
+    model: template.baseConfig.model || "gpt-4.1-nano",
+    example_intro: template.baseConfig.example_intro,
+    temperature: 0.7,
+    frequency_penalty: 0,
+    presence_penalty: 0,
+    short_term_memory_strategy: "trim",
   };
 } 

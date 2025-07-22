@@ -3,16 +3,16 @@ import { DEFAULT_CONFIG, STORAGE_KEYS, API_ENDPOINTS } from './config';
 import { showToast } from './toast';
 import logger from './logger';
 
-// Agent Generation API types - Updated to match API spec exactly
+// Agent Generation API types - Based on the correct API documentation
 export interface AgentGenerateRequest {
   prompt: string; // 10-1000 characters as per API spec
-  existing_agent?: Agent | null; // Can be null as per API spec
-  user_id: string; // Required as per API spec
-  project_id?: string | null; // Can be null as per API spec
+  existing_agent?: Agent | null; // Optional existing agent to update
+  user_id?: string; // Required for logging and rate limiting  
+  project_id?: string | null; // Optional project ID for conversation history
 }
 
 export interface AgentGenerateResponse {
-  agent: Agent; // Complete agent schema as per API spec
+  agent: Agent; // Complete agent schema
   project_id: string; // Project ID for conversation tracking
   summary: string; // Human-readable summary
   tags?: Array<{ id: number }>; // Generated tags as ID objects
@@ -442,8 +442,8 @@ class ApiClient {
     try {
       const healthResponse = await this.health();
       
-      // Try to get agents to check if the API is working
-      const agentsResponse = await this.getAgents({ limit: 1 });
+      // Try to get user agents to check if the API is working
+      const agentsResponse = await this.getUserAgents({ limit: 1 });
       
       return {
         status: 'connected',

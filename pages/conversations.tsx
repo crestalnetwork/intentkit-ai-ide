@@ -36,7 +36,7 @@ const ConversationsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0d1117] flex flex-col h-screen">
       <Head>
-        <title>Conversation History - IntentKit Sandbox</title>
+        <title>Conversation History - IntentKit AI</title>
         <meta
           name="description"
           content="View your agent creation conversation history"

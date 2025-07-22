@@ -421,7 +421,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                     {skill.name}
                   </span>
                   {skill.success ? (
-                    <span className="text-[#238636] ml-2">✓</span>
+                    <span
+                      className={`text-[${theme.colors.primary.main}] ml-2`}
+                    >
+                      ✓
+                    </span>
                   ) : (
                     <span className="text-[#f85149] ml-2">✗</span>
                   )}
@@ -524,12 +528,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 "ChatInterface.newChat"
               );
             }}
-            className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-all duration-200 whitespace-nowrap"
+            className={`inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[${theme.colors.primary.main}] text-[${theme.colors.text.onPrimary}] rounded hover:bg-[${theme.colors.primary.hover}] transition-all duration-200 whitespace-nowrap`}
           >
             <svg
               className="w-3 h-3 sm:w-4 sm:h-4"
               fill="none"
-              stroke="currentColor"
+              stroke={theme.colors.text.onPrimary}
               viewBox="0 0 24 24"
             >
               <path
@@ -539,7 +543,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline">New Chat</span>
+            <span className="hidden sm:inline text-black">New Chat</span>
             <span className="sm:hidden">New</span>
           </button>
 
@@ -607,7 +611,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <button
             onClick={sendMessage}
             disabled={loading || !inputValue.trim() || !chatThread}
-            className="px-4 py-3 sm:py-2 bg-[#238636] text-white rounded hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium whitespace-nowrap"
+            className={`px-4 py-3 sm:py-2 bg-[${theme.colors.primary.main}] text-black rounded hover:bg-[${theme.colors.primary.hover}] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium whitespace-nowrap`}
           >
             {loading ? "..." : "Send"}
           </button>

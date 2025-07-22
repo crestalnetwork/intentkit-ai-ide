@@ -94,6 +94,7 @@ export interface ChatInterfaceProps {
   isOpen?: boolean;
   onToggleViewMode?: () => void;
   viewMode?: "chat" | "details";
+  onNewChatCreated?: (thread: any) => void; // Callback when new chat is created
 }
 
 export interface AgentDetailProps {

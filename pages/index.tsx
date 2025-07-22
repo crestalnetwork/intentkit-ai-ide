@@ -22,6 +22,8 @@ const Home: React.FC = (): JSX.Element => {
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [viewMode, setViewMode] = useState<"chat" | "details">("chat");
   const [showAgentSelector, setShowAgentSelector] = useState<boolean>(false);
+  const [conversationRefreshKey, setConversationRefreshKey] =
+    useState<number>(0);
   const { isAuthenticated } = useSupabaseAuth();
 
   logger.component("mounted", "Home");
@@ -149,6 +151,16 @@ const Home: React.FC = (): JSX.Element => {
     setViewMode("chat");
   };
 
+  const handleNewChatCreated = (newThread: ChatThread) => {
+    logger.info(
+      "New chat created",
+      { threadId: newThread.id, agentId: newThread.agent_id },
+      "Home.handleNewChatCreated"
+    );
+    setSelectedThread(newThread); // Select the new thread
+    setConversationRefreshKey((prev) => prev + 1); // Trigger conversation list refresh
+  };
+
   const toggleViewMode = () => {
     const newMode = viewMode === "chat" ? "details" : "chat";
     logger.info(
@@ -221,6 +233,7 @@ const Home: React.FC = (): JSX.Element => {
                 onThreadSelect={handleThreadSelect}
                 onNewChat={handleNewChat}
                 onAgentSelect={() => setShowAgentSelector(true)}
+                refreshKey={conversationRefreshKey}
               />
             </div>
 
@@ -234,6 +247,7 @@ const Home: React.FC = (): JSX.Element => {
                     selectedThread={selectedThread}
                     onToggleViewMode={toggleViewMode}
                     viewMode={viewMode}
+                    onNewChatCreated={handleNewChatCreated}
                   />
                 ) : (
                   <AgentDetail agent={selectedAgent} />

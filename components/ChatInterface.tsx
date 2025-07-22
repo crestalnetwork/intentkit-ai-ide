@@ -14,6 +14,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   selectedThread,
   onToggleViewMode,
   viewMode = "chat",
+  onNewChatCreated,
 }) => {
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
@@ -66,61 +67,81 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           { agentId },
           "ChatInterface.useEffect"
         );
-        initializeChatThread();
+        initializeChatThread(false); // Don't force new on initial load
       }
     }
   }, [agentId, selectedThread]);
 
-  const initializeChatThread = async () => {
+  const initializeChatThread = async (forceNew: boolean = false) => {
     logger.info(
       "Starting chat thread initialization",
-      { agentId },
+      { agentId, forceNew },
       "ChatInterface.initializeChatThread"
     );
     setInitializingChat(true);
 
     try {
-      // First, try to get existing chat threads for this agent
-      const threads = await apiClient.getChatThreads(agentId);
-      logger.info(
-        "Retrieved chat threads",
-        { agentId, threadCount: threads.length },
-        "ChatInterface.initializeChatThread"
-      );
-
       let currentThread: ChatThread;
 
-      if (threads.length > 0) {
-        // Use the most recent thread
-        currentThread = threads[0];
+      if (forceNew) {
+        // Always create a new thread when explicitly requested
         logger.info(
-          "Using existing chat thread",
-          { agentId, threadId: currentThread.id },
-          "ChatInterface.initializeChatThread"
-        );
-      } else {
-        // Create a new thread
-        logger.info(
-          "Creating new chat thread",
+          "Creating new chat thread (forced)",
           { agentId },
           "ChatInterface.initializeChatThread"
         );
         currentThread = await apiClient.createChatThread(agentId);
         logger.info(
-          "Created new chat thread",
+          "Created new chat thread (forced)",
           { agentId, threadId: currentThread.id },
           "ChatInterface.initializeChatThread"
         );
+
+        // Notify parent component about new chat creation
+        if (onNewChatCreated) {
+          onNewChatCreated(currentThread);
+        }
+      } else {
+        // Default behavior: try to get existing threads first
+        const threads = await apiClient.getChatThreads(agentId);
+        logger.info(
+          "Retrieved chat threads",
+          { agentId, threadCount: threads.length },
+          "ChatInterface.initializeChatThread"
+        );
+
+        if (threads.length > 0) {
+          // Use the most recent thread
+          currentThread = threads[0];
+          logger.info(
+            "Using existing chat thread",
+            { agentId, threadId: currentThread.id },
+            "ChatInterface.initializeChatThread"
+          );
+        } else {
+          // Create a new thread if none exist
+          logger.info(
+            "Creating new chat thread (no existing threads)",
+            { agentId },
+            "ChatInterface.initializeChatThread"
+          );
+          currentThread = await apiClient.createChatThread(agentId);
+          logger.info(
+            "Created new chat thread (no existing threads)",
+            { agentId, threadId: currentThread.id },
+            "ChatInterface.initializeChatThread"
+          );
+        }
       }
 
       setChatThread(currentThread);
 
-      // Load existing messages for this thread
+      // Load existing messages for this thread (will be empty for new threads)
       await loadChatMessages(currentThread.id);
     } catch (error: any) {
       logger.error(
         "Failed to initialize chat thread",
-        { agentId, error: error.message },
+        { agentId, forceNew, error: error.message },
         "ChatInterface.initializeChatThread"
       );
       console.error("Error initializing chat thread:", error);
@@ -153,13 +174,18 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         (msg: ChatMessage) => ({
           id: msg.id,
           content: msg.message,
-          sender: msg.author_type,
+          sender: (msg.author_type === "web"
+            ? "user"
+            : msg.author_type === "agent"
+            ? "agent"
+            : "system") as "user" | "agent" | "system",
           timestamp: msg.created_at || new Date().toISOString(),
           skillCalls: msg.skill_calls || [],
         })
       );
 
-      setMessages(extendedMessages);
+      // Reverse the messages so oldest appear first (normal chat order)
+      setMessages(extendedMessages.reverse());
     } catch (error: any) {
       logger.error(
         "Failed to load chat messages",
@@ -240,11 +266,31 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         const newMessages = responseMessages.map((msg) => ({
           id: msg.id,
           content: msg.message,
-          sender: msg.author_type as "user" | "agent" | "system",
+          sender: (msg.author_type === "web"
+            ? "user"
+            : msg.author_type === "agent"
+            ? "agent"
+            : "system") as "user" | "agent" | "system",
           timestamp: msg.created_at || new Date().toISOString(),
           skillCalls: msg.skill_calls || [],
         }));
-        return [...withoutTemp, ...newMessages];
+
+        // Check if the API response includes the user message
+        const hasUserMessage = newMessages.some(
+          (msg) => msg.sender === "user" && msg.content === messageContent
+        );
+
+        if (hasUserMessage) {
+          // API included user message, use all response messages
+          return [...withoutTemp, ...newMessages];
+        } else {
+          // API didn't include user message, keep the user message and add response messages
+          const permanentUserMessage: ExtendedMessage = {
+            ...userMessage,
+            id: `user-${Date.now()}`, // Give it a permanent ID
+          };
+          return [...withoutTemp, permanentUserMessage, ...newMessages];
+        }
       });
     } catch (error: any) {
       logger.error(
@@ -471,7 +517,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               // Start a new chat - clear current thread and create new one
               setChatThread(null);
               setMessages([]);
-              initializeChatThread();
+              initializeChatThread(true); // Force new chat
               logger.info(
                 "Starting new chat",
                 { agentId },

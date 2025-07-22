@@ -11,6 +11,7 @@ interface ConversationsListProps {
   onThreadSelect: (thread: ChatThread) => void;
   onNewChat: () => void;
   onAgentSelect: () => void; // Open agent selector
+  refreshKey?: number; // Used to trigger refresh of conversation list
 }
 
 const ConversationsList: React.FC<ConversationsListProps> = ({
@@ -20,6 +21,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   onThreadSelect,
   onNewChat,
   onAgentSelect,
+  refreshKey,
 }) => {
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -43,7 +45,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
     } else {
       setThreads([]);
     }
-  }, [selectedAgentId]);
+  }, [selectedAgentId, refreshKey]); // Added refreshKey to trigger refresh
 
   const loadConversations = async () => {
     if (!selectedAgentId) return;

@@ -102,7 +102,7 @@ export interface ChatMessage {
   chat_id: string;
   user_id: string;
   author_id: string;
-  author_type: 'user' | 'agent' | 'system';
+  author_type: 'agent' | 'trigger' | 'skill' | 'telegram' | 'twitter' | 'web' | 'system' | 'api';
   model?: string;
   thread_type: 'agent';
   reply_to?: string;

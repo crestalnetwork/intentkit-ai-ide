@@ -10,7 +10,6 @@ import Footer from "../components/Footer";
 import { AgentTemplate } from "../lib/utils/templates";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
-import theme from "../lib/utils/theme";
 
 const CreateAgentPage: React.FC = () => {
   const router = useRouter();
@@ -48,7 +47,7 @@ const CreateAgentPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0d1117] flex flex-col h-screen">
+    <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col h-screen">
       <Head>
         <title>Create Agent - IntentKit AI</title>
         <meta
@@ -71,31 +70,68 @@ const CreateAgentPage: React.FC = () => {
 
       {/* Authentication Warning */}
       {!isAuthenticated && (
-        <div className="bg-[#fef3cd]/10 border-b border-[#fef3cd]/20 px-4 py-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[#fef3cd] text-sm">
-              Please sign in to create agents. You can use the Quick Creator for
-              a streamlined experience.
-            </p>
+        <div className="bg-[var(--color-neon-pink-subtle)] border-b border-[var(--color-neon-pink-border)] px-4 py-2 relative overflow-hidden">
+          {/* Subtle neon glow background effect */}
+          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-neon-pink-glow)] to-[var(--color-neon-cyan-glow)] opacity-20"></div>
+
+          <div className="flex items-center justify-between relative z-10">
+            <div className="flex items-center space-x-2">
+              <div className="flex-shrink-0">
+                <svg
+                  className="w-4 h-4 text-[var(--color-neon-pink)]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <div>
+                <p className="text-[var(--color-neon-pink)] text-sm font-medium">
+                  Please sign in to create agents
+                </p>
+              </div>
+            </div>
             <Link
               href="/quick"
-              className={`text-sm py-1.5 px-3 bg-[${theme.colors.primary.main}] text-[${theme.colors.text.onPrimary}] rounded hover:bg-[${theme.colors.primary.hover}] transition-colors`}
+              className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover-neon-glow-lime transition-all duration-200 font-medium whitespace-nowrap"
             >
-              Go to Quick Creator
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+              <span>Quick Creator</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* Main content */}
-      <main className="flex-1 overflow-hidden">
-        <div className="h-full p-4">
-          <AgentCreator
-            baseUrl={baseUrl}
-            onAgentCreated={handleAgentCreated}
-            currentProjectId={undefined}
-            selectedTemplate={selectedTemplate}
-          />
+      {/* Main content - Give maximum space to AgentCreator */}
+      <main className="flex-1 overflow-hidden bg-[var(--color-bg-primary)] min-h-0">
+        <div className="h-full p-3 max-w-7xl mx-auto">
+          <div className="h-full bg-[var(--color-bg-secondary)] border border-[var(--color-border-primary)] rounded-lg overflow-hidden shadow-lg">
+            <AgentCreator
+              baseUrl={baseUrl}
+              onAgentCreated={handleAgentCreated}
+              currentProjectId={undefined}
+              selectedTemplate={selectedTemplate}
+              onOpenTemplateSelector={() => setShowTemplateSelector(true)}
+            />
+          </div>
         </div>
       </main>
 

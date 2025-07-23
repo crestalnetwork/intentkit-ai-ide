@@ -139,7 +139,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
               <div className="text-xs text-[#8b949e]">
                 {selectedAgent
                   ? selectedAgent.name && selectedAgent.id
-                    ? `ID: ${selectedAgent.id.slice(0, 8)}... • Click to change`
+                    ? `ID: ${selectedAgent.id} • Click to change`
                     : "Click to change agent"
                   : "Click to select an agent"}
               </div>

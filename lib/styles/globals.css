@@ -3,20 +3,73 @@
 @tailwind utilities;
 
 :root {
-  /* GitHub Dark Theme Colors */
-  --color-bg-primary: #0d1117;
-  --color-bg-secondary: #161b22;
-  --color-bg-tertiary: #21262d;
-  --color-border-primary: #30363d;
-  --color-text-primary: #c9d1d9;
-  --color-text-secondary: #8b949e;
-  --color-accent-primary: #58a6ff;
-  --color-accent-secondary: #1f6feb;
-  --color-success: #238636;
-  --color-error: #f85149;
-  --color-warning: #e3b341;
-  --color-button-bg: #21262d;
-  --color-button-hover: #30363d;
+  /* Neon Theme Colors */
+  
+  /* Background Colors */
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #0a0a0a;
+  --color-bg-tertiary: #111111;
+  --color-bg-card: #0d0d0d;
+  --color-bg-input: #0f0f0f;
+  --color-bg-modal: rgba(0, 0, 0, 0.9);
+  
+  /* Neon Colors */
+  --color-neon-lime: #d0ff16;
+  --color-neon-lime-bright: #e5ff4a;
+  --color-neon-lime-dim: #a8cc12;
+  --color-neon-lime-glow: rgba(208, 255, 22, 0.3);
+  --color-neon-lime-subtle: rgba(208, 255, 22, 0.1);
+  --color-neon-lime-border: rgba(208, 255, 22, 0.4);
+  
+  --color-neon-cyan: #00ffff;
+  --color-neon-cyan-bright: #4dffff;
+  --color-neon-cyan-dim: #00cccc;
+  --color-neon-cyan-glow: rgba(0, 255, 255, 0.3);
+  --color-neon-cyan-subtle: rgba(0, 255, 255, 0.1);
+  --color-neon-cyan-border: rgba(0, 255, 255, 0.4);
+  
+  --color-neon-pink: #ff1493;
+  --color-neon-pink-bright: #ff47a3;
+  --color-neon-pink-dim: #cc1075;
+  --color-neon-pink-glow: rgba(255, 20, 147, 0.3);
+  --color-neon-pink-subtle: rgba(255, 20, 147, 0.1);
+  --color-neon-pink-border: rgba(255, 20, 147, 0.4);
+  
+  --color-neon-purple: #9d00ff;
+  --color-neon-purple-bright: #b347ff;
+  --color-neon-purple-dim: #7a00cc;
+  --color-neon-purple-glow: rgba(157, 0, 255, 0.3);
+  --color-neon-purple-subtle: rgba(157, 0, 255, 0.1);
+  --color-neon-purple-border: rgba(157, 0, 255, 0.4);
+  
+  /* Text Colors */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #e5e5e5;
+  --color-text-tertiary: #b3b3b3;
+  --color-text-muted: #808080;
+  --color-text-on-primary: #000000;
+  
+  /* Border Colors */
+  --color-border-primary: #333333;
+  --color-border-secondary: #262626;
+  --color-border-tertiary: #404040;
+  
+  /* State Colors */
+  --color-success: #d0ff16;
+  --color-error: #ff1493;
+  --color-warning: #ff9500;
+  --color-info: #00ffff;
+  
+  /* Legacy GitHub colors for compatibility */
+  --color-bg-github-primary: #0d1117;
+  --color-bg-github-secondary: #161b22;
+  --color-bg-github-tertiary: #21262d;
+  --color-border-github: #30363d;
+  --color-text-github-primary: #c9d1d9;
+  --color-text-github-secondary: #8b949e;
+  --color-accent-github: #58a6ff;
+  --color-github-success: #238636;
+  --color-github-error: #f85149;
 }
 
 html,
@@ -33,12 +86,40 @@ body {
 }
 
 a {
-  color: var(--color-accent-primary);
+  color: var(--color-neon-lime);
   text-decoration: none;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Neon glow effects */
+.neon-glow-lime {
+  box-shadow: 0 0 20px var(--color-neon-lime-glow), 0 0 40px rgba(208, 255, 22, 0.2);
+}
+
+.neon-glow-cyan {
+  box-shadow: 0 0 20px var(--color-neon-cyan-glow), 0 0 40px rgba(0, 255, 255, 0.2);
+}
+
+.neon-glow-pink {
+  box-shadow: 0 0 20px var(--color-neon-pink-glow), 0 0 40px rgba(255, 20, 147, 0.2);
+}
+
+.neon-glow-purple {
+  box-shadow: 0 0 20px var(--color-neon-purple-glow), 0 0 40px rgba(157, 0, 255, 0.2);
+}
+
+/* Hover glow effects */
+.hover-neon-glow-lime:hover {
+  box-shadow: 0 0 25px var(--color-neon-lime-glow), 0 0 50px rgba(208, 255, 22, 0.3);
+  transition: box-shadow 0.3s ease-in-out;
+}
+
+.hover-neon-glow-cyan:hover {
+  box-shadow: 0 0 25px var(--color-neon-cyan-glow), 0 0 50px rgba(0, 255, 255, 0.3);
+  transition: box-shadow 0.3s ease-in-out;
 }
 
 /* Spacing utilities */
@@ -73,16 +154,16 @@ a {
 }
 
 .agent-list-scroll::-webkit-scrollbar-track {
-  background: #0d1117;
+  background: var(--color-bg-primary);
 }
 
 .agent-list-scroll::-webkit-scrollbar-thumb {
-  background: #30363d;
+  background: var(--color-border-primary);
   border-radius: 4px;
 }
 
 .agent-list-scroll::-webkit-scrollbar-thumb:hover {
-  background: #444c56;
+  background: var(--color-border-tertiary);
 }
 
 /* GitHub-style code block */
@@ -94,20 +175,35 @@ a {
 }
 
 /* Custom animations */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes pulse-neon {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 
-@keyframes slideInRight {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+.animate-pulse-neon {
+  animation: pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-@keyframes slideInLeft {
-  from { transform: translateX(-20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+/* Typing indicator animation */
+@keyframes bounce-neon {
+  0%, 80%, 100% {
+    transform: scale(0);
+  }
+  40% {
+    transform: scale(1);
+  }
 }
+
+.animate-bounce-neon {
+  animation: bounce-neon 1.4s infinite ease-in-out both;
+}
+
+.animate-bounce-neon:nth-child(1) { animation-delay: -0.32s; }
+.animate-bounce-neon:nth-child(2) { animation-delay: -0.16s; }
 
 /* Loading indicator */
 .loader {

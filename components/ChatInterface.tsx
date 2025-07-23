@@ -6,7 +6,6 @@ import apiClient, {
   SendMessageRequest,
 } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
-import theme from "../lib/utils/theme";
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   baseUrl,
@@ -318,6 +317,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setLoading(false);
+      // Refocus input after sending message for better UX
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
@@ -365,20 +368,20 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const renderTypingIndicator = () => (
     <div className="flex justify-start mb-4">
-      <div className="bg-[#21262d] text-[#c9d1d9] border border-[#30363d] rounded-lg px-4 py-2 max-w-xs">
+      <div className="bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-lg px-4 py-2 max-w-xs">
         <div className="flex items-center space-x-1">
           <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"></div>
             <div
-              className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"
+              className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"
               style={{ animationDelay: "0.1s" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"
+              className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"
               style={{ animationDelay: "0.2s" }}
             ></div>
           </div>
-          <span className="text-sm text-[#8b949e] ml-2">
+          <span className="text-sm text-[var(--color-text-tertiary)] ml-2">
             Agent is typing...
           </span>
         </div>
@@ -398,10 +401,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         <div
           className={`max-w-[85%] sm:max-w-[70%] rounded px-2 py-1 ${
             isUser
-              ? "bg-[#0969da] text-white"
+              ? "bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] neon-glow-lime"
               : isSystem
-              ? "bg-[#f85149]/10 border border-[#f85149]/20 text-[#f85149]"
-              : "bg-[#21262d] text-[#c9d1d9] border border-[#30363d]"
+              ? "bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] text-[var(--color-neon-pink)]"
+              : "bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)]"
           }`}
         >
           <div className="whitespace-pre-wrap break-words text-sm sm:text-base">
@@ -410,31 +413,33 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
           {/* Skill calls display */}
           {message.skillCalls && message.skillCalls.length > 0 && (
-            <div className="mt-2 pt-2 border-t border-[#30363d]">
-              <div className="text-xs text-[#8b949e] mb-1">Skills used:</div>
+            <div className="mt-2 pt-2 border-t border-[var(--color-border-primary)]">
+              <div className="text-xs text-[var(--color-text-tertiary)] mb-1">
+                Skills used:
+              </div>
               {message.skillCalls.map((skill: any, skillIndex: number) => (
                 <div
                   key={skillIndex}
-                  className="text-xs bg-[#0d1117] rounded px-2 py-1 mb-1"
+                  className="text-xs bg-[var(--color-bg-secondary)] rounded px-2 py-1 mb-1"
                 >
-                  <span className="text-[#58a6ff] font-medium">
+                  <span className="text-[var(--color-neon-cyan)] font-medium">
                     {skill.name}
                   </span>
                   {skill.success ? (
-                    <span
-                      className={`text-[${theme.colors.primary.main}] ml-2`}
-                    >
+                    <span className="text-[var(--color-neon-lime)] ml-2">
                       ✓
                     </span>
                   ) : (
-                    <span className="text-[#f85149] ml-2">✗</span>
+                    <span className="text-[var(--color-neon-pink)] ml-2">
+                      ✗
+                    </span>
                   )}
                 </div>
               ))}
             </div>
           )}
 
-          <div className="text-xs text-[#8b949e] mt-1 opacity-70">
+          <div className="text-xs text-[var(--color-text-muted)] mt-1 opacity-70">
             {new Date(message.timestamp).toLocaleTimeString()}
           </div>
         </div>
@@ -444,12 +449,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   if (initializingChat) {
     return (
-      <div
-        className={`bg-[${theme.colors.background.primary}] sm:rounded-xl sm:border border-[#30363d] flex flex-col h-full overflow-hidden`}
-      >
-        <div
-          className={`p-2 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[#30363d] flex justify-between items-center`}
-        >
+      <div className="bg-[var(--color-bg-primary)] sm:rounded-xl sm:border border-[var(--color-border-primary)] flex flex-col h-full overflow-hidden">
+        <div className="p-2 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex justify-between items-center">
           <div>
             <h2 className="text-base sm:text-lg font-semibold">
               Chat with {agentDisplayName}
@@ -458,7 +459,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           {onToggleViewMode && (
             <button
               onClick={onToggleViewMode}
-              className={`inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[#161b22] text-[${theme.colors.text.secondary}] rounded-lg border border-[#30363d] hover:bg-[#21262d] hover:border-[#8b949e] transition-all duration-200`}
+              className="inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] rounded-lg border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-lime-border)] hover-neon-glow-lime transition-all duration-200"
             >
               <svg
                 className="w-3 h-3 sm:w-4 sm:h-4"
@@ -484,10 +485,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
-            <div
-              className={`animate-spin rounded-full h-8 w-8 border-2 border-[#21262d] border-t-[${theme.colors.primary.main}] mb-4 mx-auto`}
-            ></div>
-            <p className={`text-[${theme.colors.text.tertiary}]`}>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--color-border-secondary)] border-t-[var(--color-neon-lime)] mb-4 mx-auto"></div>
+            <p className="text-[var(--color-text-tertiary)]">
               Initializing chat...
             </p>
           </div>
@@ -497,21 +496,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   }
 
   return (
-    <div
-      className={`bg-[${theme.colors.background.primary}] sm:rounded-xl sm:border border-[${theme.colors.border.primary}] flex flex-col h-full overflow-hidden`}
-    >
-      <div
-        className={`p-2 bg-[${theme.colors.background.primary}] text-[${theme.colors.text.primary}] border-b border-[#30363d] flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-1 sm:space-y-0`}
-      >
+    <div className="bg-[var(--color-bg-primary)] sm:rounded-xl sm:border border-[var(--color-border-primary)] flex flex-col h-full overflow-hidden">
+      <div className="p-2 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-1 sm:space-y-0">
         <div className="flex-1 min-w-0">
           <h2 className="text-base sm:text-lg font-semibold truncate">
             Chat with {agentDisplayName}
           </h2>
           {chatThread && (
-            <p
-              className={`text-xs text-[${theme.colors.text.tertiary}] truncate`}
-            >
-              Thread: {chatThread.id.slice(0, 8)}...
+            <p className="text-xs text-[var(--color-text-tertiary)] truncate">
+              Thread: {chatThread.id}
             </p>
           )}
         </div>
@@ -528,12 +521,12 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 "ChatInterface.newChat"
               );
             }}
-            className={`inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[${theme.colors.primary.main}] text-[${theme.colors.text.onPrimary}] rounded hover:bg-[${theme.colors.primary.hover}] transition-all duration-200 whitespace-nowrap`}
+            className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover:neon-glow-lime transition-all duration-200 whitespace-nowrap font-medium"
           >
             <svg
               className="w-3 h-3 sm:w-4 sm:h-4"
               fill="none"
-              stroke={theme.colors.text.onPrimary}
+              stroke="var(--color-text-on-primary)"
               viewBox="0 0 24 24"
             >
               <path
@@ -543,14 +536,14 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline text-black">New Chat</span>
+            <span className="hidden sm:inline">New Chat</span>
             <span className="sm:hidden">New</span>
           </button>
 
           {onToggleViewMode && (
             <button
               onClick={onToggleViewMode}
-              className={`inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[#161b22] text-[${theme.colors.text.secondary}] rounded border border-[#30363d] hover:bg-[#21262d] hover:border-[#8b949e] transition-all duration-200 whitespace-nowrap`}
+              className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] rounded border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan-border)] hover-neon-glow-cyan transition-all duration-200 whitespace-nowrap"
             >
               <svg
                 className="w-3 h-3 sm:w-4 sm:h-4"
@@ -583,10 +576,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           <div className="flex items-center justify-center h-full text-center">
             <div>
               <div className="text-4xl mb-4">💬</div>
-              <h3 className="text-lg font-medium text-[#c9d1d9] mb-2">
+              <h3 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">
                 Start chatting with {agentDisplayName}
               </h3>
-              <p className="text-sm text-[#8b949e]">
+              <p className="text-sm text-[var(--color-text-tertiary)]">
                 Type a message below to begin the conversation
               </p>
             </div>
@@ -596,7 +589,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {loading && renderTypingIndicator()}
         <div ref={messagesEndRef} />
       </div>
-      <div className="border-t border-[#30363d] p-2 flex-shrink-0">
+      <div className="border-t border-[var(--color-border-primary)] p-2 flex-shrink-0">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           <input
             ref={inputRef}
@@ -605,19 +598,19 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="flex-1 p-3 sm:p-2 bg-[#0d1117] border border-[#30363d] rounded text-[#c9d1d9] text-sm focus:outline-none focus:ring-1 focus:ring-[#58a6ff] focus:border-[#58a6ff]"
+            className="flex-1 p-3 sm:p-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all"
             disabled={loading || !chatThread}
           />
           <button
             onClick={sendMessage}
             disabled={loading || !inputValue.trim() || !chatThread}
-            className={`px-4 py-3 sm:py-2 bg-[${theme.colors.primary.main}] text-black rounded hover:bg-[${theme.colors.primary.hover}] disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium whitespace-nowrap`}
+            className="px-4 py-3 sm:py-2 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] disabled:opacity-50 disabled:cursor-not-allowed neon-glow-lime hover:neon-glow-lime transition-all font-medium whitespace-nowrap"
           >
             {loading ? "..." : "Send"}
           </button>
         </div>
         {messageHistory.length > 0 && (
-          <div className="text-xs text-[#8b949e] mt-1 hidden sm:block">
+          <div className="text-xs text-[var(--color-text-muted)] mt-1 hidden sm:block">
             Use ↑↓ arrows to navigate message history
           </div>
         )}

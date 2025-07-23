@@ -4,8 +4,12 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
 import axios from "axios";
 import theme from "../lib/utils/theme";
+import { showToast } from "../lib/utils/toast";
 
-const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
+const AgentDetail: React.FC<AgentDetailProps> = ({
+  agent,
+  onToggleViewMode,
+}) => {
   const [showRawConfig, setShowRawConfig] = useState<boolean>(false);
   const [showEditMode, setShowEditMode] = useState<boolean>(false);
   const [editedConfig, setEditedConfig] = useState<string>("");
@@ -173,14 +177,38 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
   };
 
   return (
-    <div className="bg-[#161b22] rounded-xl border border-[#30363d] h-full flex flex-col overflow-hidden">
-      <div className="p-2 bg-[#161b22] text-[#c9d1d9] border-b border-[#30363d] flex justify-between items-center">
-        <h2 className="text-sm font-semibold">Agent Details</h2>
+    <div className="bg-[var(--color-bg-primary)] rounded-xl border border-[var(--color-border-primary)] h-full flex flex-col overflow-hidden">
+      <div className="p-3 bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex justify-between items-center">
+        <div className="flex items-center space-x-3">
+          {onToggleViewMode && (
+            <button
+              onClick={onToggleViewMode}
+              className="inline-flex items-center space-x-1 text-xs py-1.5 px-2 bg-[var(--color-bg-card)] text-[var(--color-neon-cyan)] border border-[var(--color-neon-cyan-border)] rounded hover:bg-[var(--color-neon-cyan-subtle)] hover:border-[var(--color-neon-cyan)] hover-neon-glow-cyan transition-all duration-200"
+              title="Back to Chat"
+            >
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              <span>Back to Chat</span>
+            </button>
+          )}
+          <h2 className="text-lg font-semibold">Agent Details</h2>
+        </div>
         <div className="flex items-center space-x-2">
           {!showEditMode && (
             <button
               onClick={handleEditClick}
-              className="text-xs text-[#58a6ff] hover:underline flex items-center py-0.5 px-2 bg-[#0d1117] rounded-md border border-[#30363d]"
+              className="text-xs text-[var(--color-neon-lime)] hover:text-[var(--color-neon-lime-bright)] flex items-center py-1.5 px-3 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-lime-border)] hover:bg-[var(--color-neon-lime-subtle)] hover:border-[var(--color-neon-lime)] hover-neon-glow-lime transition-all duration-200 font-medium"
             >
               <svg
                 className="mr-1 h-3 w-3"
@@ -201,7 +229,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
           {!showEditMode && (
             <button
               onClick={() => setShowRawConfig(!showRawConfig)}
-              className="text-xs text-[#58a6ff] hover:underline flex items-center py-0.5 px-2 bg-[#0d1117] rounded-md border border-[#30363d]"
+              className="text-xs text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] flex items-center py-1.5 px-3 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-cyan-border)] hover:bg-[var(--color-neon-cyan-subtle)] hover:border-[var(--color-neon-cyan)] hover-neon-glow-cyan transition-all duration-200 font-medium"
             >
               {showRawConfig ? "Hide" : "JSON"}
               <svg
@@ -224,25 +252,25 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
         </div>
       </div>
 
-      <div className="p-2 flex-1 overflow-y-auto bg-[#0d1117]">
+      <div className="p-3 flex-1 overflow-y-auto bg-[var(--color-bg-secondary)]">
         {showEditMode ? (
-          <div className="bg-[#161b22] rounded-lg border border-[#30363d] overflow-hidden">
-            <div className="bg-[#21262d] px-2 py-1 text-xs font-medium text-[#c9d1d9] border-b border-[#30363d] flex justify-between items-center">
+          <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] overflow-hidden">
+            <div className="bg-[var(--color-bg-secondary)] px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex justify-between items-center">
               <span>Edit Agent Configuration</span>
-              <div className="flex space-x-1">
+              <div className="flex space-x-2">
                 <button
                   onClick={() => setShowEditMode(false)}
-                  className="text-[10px] text-[#c9d1d9] hover:underline py-0.5 px-1.5 bg-[#21262d] rounded border border-[#30363d]"
+                  className="text-xs text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] py-1 px-2 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-cyan-border)] hover:bg-[var(--color-neon-cyan-subtle)] transition-all duration-200"
                   disabled={isSaving}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSaveConfig}
-                  className={`text-[10px] text-white py-0.5 px-1.5 rounded border ${
+                  className={`text-xs py-1 px-2 rounded border transition-all duration-200 ${
                     isSaving
-                      ? "bg-[#30363d] cursor-not-allowed"
-                      : "bg-[#238636] hover:bg-[#2ea043] border-[#238636]"
+                      ? "bg-[var(--color-text-muted)] cursor-not-allowed text-[var(--color-bg-primary)]"
+                      : "bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] border-[var(--color-neon-lime-border)] hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime font-medium"
                   }`}
                   disabled={isSaving}
                 >
@@ -253,10 +281,10 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
 
             {saveResult && (
               <div
-                className={`px-2 py-1 text-xs ${
+                className={`px-3 py-2 text-sm border-b ${
                   saveResult.success
-                    ? "bg-[#132e21] text-[#56d364] border-b border-[#238636]"
-                    : "bg-[#3b1a1a] text-[#f85149] border-b border-[#f85149]"
+                    ? "bg-[var(--color-neon-lime-subtle)] text-[var(--color-neon-lime)] border-[var(--color-neon-lime-border)]"
+                    : "bg-[var(--color-neon-pink-subtle)] text-[var(--color-neon-pink)] border-[var(--color-neon-pink-border)]"
                 }`}
               >
                 {saveResult.message}
@@ -266,15 +294,15 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
             <textarea
               value={editedConfig}
               onChange={handleConfigChange}
-              className="w-full h-full p-2 bg-[#0d1117] text-[#c9d1d9] font-mono text-xs focus:outline-none"
-              style={{ minHeight: "calc(100vh - 200px)", resize: "none" }}
+              className="w-full h-full p-3 bg-[var(--color-bg-input)] text-[var(--color-text-primary)] font-mono text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] border-none resize-none"
+              style={{ minHeight: "calc(100vh - 200px)" }}
               spellCheck="false"
               disabled={isSaving}
             />
           </div>
         ) : showRawConfig ? (
-          <div className="bg-[#161b22] rounded-lg border border-[#30363d] overflow-hidden">
-            <div className="bg-[#21262d] px-2 py-1 text-[10px] font-medium text-[#c9d1d9] border-b border-[#30363d] flex justify-between items-center">
+          <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] overflow-hidden">
+            <div className="bg-[var(--color-bg-secondary)] px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex justify-between items-center">
               <span>JSON Configuration</span>
               <button
                 onClick={() => {
@@ -285,9 +313,9 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
                     50
                   );
                 }}
-                className="text-[10px] text-[#58a6ff] hover:underline py-0.5 px-1 bg-[#0d1117] rounded border border-[#30363d]"
+                className="text-xs text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] py-1 px-2 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-cyan-border)] hover:bg-[var(--color-neon-cyan-subtle)] transition-all duration-200"
               >
-                Copy
+                📋 Copy
               </button>
             </div>
             <SyntaxHighlighter
@@ -295,12 +323,12 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
               style={materialDark}
               customStyle={{
                 margin: 0,
-                padding: "0.75rem",
+                padding: "1rem",
                 maxHeight: "calc(100vh - 200px)",
                 overflowY: "auto",
-                background: "#0d1117",
+                background: "var(--color-bg-input)",
                 borderRadius: 0,
-                fontSize: "0.7rem",
+                fontSize: "0.75rem",
               }}
             >
               {JSON.stringify(agent, null, 2)}
@@ -308,73 +336,327 @@ const AgentDetail: React.FC<AgentDetailProps> = ({ agent }) => {
           </div>
         ) : (
           <>
-            <div className="bg-[#161b22] rounded-lg border border-[#30363d] p-2">
-              <h3 className="text-sm font-medium text-[#c9d1d9]">
-                {agent.name || agent.id}
-              </h3>
-              <div className="mt-1 flex flex-wrap gap-1">
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
-                  ID: {agent.id}
-                </span>
-                {agent.model && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-medium bg-[#0d1117] text-[#58a6ff] border border-[#30363d]">
-                    Model: {agent.model}
-                  </span>
-                )}
-              </div>
-
-              {agent.purpose && (
-                <div className="mt-2">
-                  <h4 className="text-xs font-medium text-[#8b949e]">
-                    Purpose
-                  </h4>
-                  <p className="mt-1 text-xs text-[#c9d1d9] bg-[#0d1117] p-1.5 rounded border border-[#30363d]">
-                    {agent.purpose}
-                  </p>
-                </div>
-              )}
-
-              {agent.personality && (
-                <div className="mt-2">
-                  <h4 className="text-xs font-medium text-[#8b949e]">
-                    Personality
-                  </h4>
-                  <p className="mt-1 text-xs text-[#c9d1d9] bg-[#0d1117] p-1.5 rounded border border-[#30363d]">
-                    {agent.personality}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-2 flex flex-wrap gap-2 text-[9px] text-[#8b949e]">
-                {agent.created_at && (
-                  <div className="bg-[#0d1117] px-1.5 py-1 rounded border border-[#30363d]">
-                    Created: {new Date(agent.created_at).toLocaleString()}
+            {/* Agent Header */}
+            <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4 mb-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-2">
+                    {agent.name || agent.id}
+                  </h3>
+                  {agent.description && (
+                    <p className="text-sm text-[var(--color-text-secondary)] mb-3">
+                      {agent.description}
+                    </p>
+                  )}
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--color-neon-cyan-subtle)] text-[var(--color-neon-cyan)] border border-[var(--color-neon-cyan-border)]">
+                      ID: {agent.id}
+                    </span>
+                    {agent.model && (
+                      <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-[var(--color-neon-lime-subtle)] text-[var(--color-neon-lime)] border border-[var(--color-neon-lime-border)]">
+                        Model: {agent.model}
+                      </span>
+                    )}
+                    {agent.mode && (
+                      <span
+                        className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                          agent.mode === "public"
+                            ? "bg-[var(--color-neon-lime-subtle)] text-[var(--color-neon-lime)] border border-[var(--color-neon-lime-border)]"
+                            : "bg-[var(--color-neon-purple-subtle)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)]"
+                        }`}
+                      >
+                        {agent.mode === "public" ? "🌐 Public" : "🔒 Private"}
+                      </span>
+                    )}
                   </div>
-                )}
-
-                {agent.updated_at && agent.updated_at !== agent.created_at && (
-                  <div className="bg-[#0d1117] px-1.5 py-1 rounded border border-[#30363d]">
-                    Updated: {new Date(agent.updated_at).toLocaleString()}
-                  </div>
+                </div>
+                {agent.picture && (
+                  <img
+                    src={agent.picture}
+                    alt={agent.name || "Agent"}
+                    className="w-16 h-16 rounded-lg border border-[var(--color-border-primary)]"
+                  />
                 )}
               </div>
             </div>
 
-            {agent.skills && Object.keys(agent.skills).length > 0 && (
-              <div className="mt-2 bg-[#161b22] rounded-lg border border-[#30363d] p-2">
-                <h4 className="text-sm font-medium text-[#c9d1d9]">Skills</h4>
+            {/* CDP Wallet Information */}
+            {(agent.wallet_provider === "cdp" || agent.cdp_wallet_address) && (
+              <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4 mb-4">
+                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-2 text-[var(--color-neon-cyan)]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                  CDP Wallet
+                </h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[var(--color-text-tertiary)]">
+                      Status:
+                    </span>
+                    <span className="text-[var(--color-neon-cyan)] font-medium">
+                      ✅ Enabled
+                    </span>
+                  </div>
+                  {agent.cdp_wallet_address && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Address:
+                      </span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            agent.cdp_wallet_address!
+                          );
+                          showToast.success(
+                            "Wallet address copied to clipboard!"
+                          );
+                        }}
+                        className="text-[var(--color-text-secondary)] hover:text-[var(--color-neon-cyan)] font-mono text-xs bg-[var(--color-bg-secondary)] px-2 py-1 rounded border border-[var(--color-border-secondary)] hover:border-[var(--color-neon-cyan-border)] transition-all duration-200 cursor-pointer"
+                        title="Click to copy wallet address"
+                      >
+                        {agent.cdp_wallet_address.slice(0, 6)}...
+                        {agent.cdp_wallet_address.slice(-4)}
+                      </button>
+                    </div>
+                  )}
+                  {(agent.network_id || agent.cdp_network_id) && (
+                    <div className="flex items-center justify-between">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Network:
+                      </span>
+                      <span className="text-[var(--color-text-secondary)] font-medium">
+                        {agent.network_id || agent.cdp_network_id}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
-                <div className="mt-2 space-y-2">
+            {/* Basic Information */}
+            <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4 mb-4">
+              <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-3">
+                Configuration
+              </h4>
+
+              <div className="space-y-3">
+                {agent.purpose && (
+                  <div>
+                    <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-1">
+                      Purpose
+                    </h5>
+                    <p className="text-sm text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] p-3 rounded border border-[var(--color-border-secondary)] leading-relaxed">
+                      {agent.purpose}
+                    </p>
+                  </div>
+                )}
+
+                {agent.personality && (
+                  <div>
+                    <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-1">
+                      Personality
+                    </h5>
+                    <p className="text-sm text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] p-3 rounded border border-[var(--color-border-secondary)] leading-relaxed">
+                      {agent.personality}
+                    </p>
+                  </div>
+                )}
+
+                {agent.principles && (
+                  <div>
+                    <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-1">
+                      Principles
+                    </h5>
+                    <p className="text-sm text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)] p-3 rounded border border-[var(--color-border-secondary)] leading-relaxed">
+                      {agent.principles}
+                    </p>
+                  </div>
+                )}
+
+                {/* Additional Configuration */}
+                <div className="grid grid-cols-2 gap-3 text-xs">
+                  {agent.temperature !== undefined && (
+                    <div className="bg-[var(--color-bg-secondary)] p-2 rounded border border-[var(--color-border-secondary)]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Temperature:
+                      </span>
+                      <span className="ml-1 text-[var(--color-text-primary)] font-mono">
+                        {agent.temperature}
+                      </span>
+                    </div>
+                  )}
+                  {agent.frequency_penalty !== undefined && (
+                    <div className="bg-[var(--color-bg-secondary)] p-2 rounded border border-[var(--color-border-secondary)]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Frequency:
+                      </span>
+                      <span className="ml-1 text-[var(--color-text-primary)] font-mono">
+                        {agent.frequency_penalty}
+                      </span>
+                    </div>
+                  )}
+                  {agent.presence_penalty !== undefined && (
+                    <div className="bg-[var(--color-bg-secondary)] p-2 rounded border border-[var(--color-border-secondary)]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Presence:
+                      </span>
+                      <span className="ml-1 text-[var(--color-text-primary)] font-mono">
+                        {agent.presence_penalty}
+                      </span>
+                    </div>
+                  )}
+                  {agent.short_term_memory_strategy && (
+                    <div className="bg-[var(--color-bg-secondary)] p-2 rounded border border-[var(--color-border-secondary)]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Memory:
+                      </span>
+                      <span className="ml-1 text-[var(--color-text-primary)] font-medium">
+                        {agent.short_term_memory_strategy}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Timestamps */}
+                <div className="flex flex-wrap gap-2 text-xs">
+                  {agent.created_at && (
+                    <div className="bg-[var(--color-bg-secondary)] px-2 py-1 rounded border border-[var(--color-border-secondary)]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Created:
+                      </span>
+                      <span className="ml-1 text-[var(--color-text-secondary)]">
+                        {new Date(agent.created_at).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {agent.updated_at &&
+                    agent.updated_at !== agent.created_at && (
+                      <div className="bg-[var(--color-bg-secondary)] px-2 py-1 rounded border border-[var(--color-border-secondary)]">
+                        <span className="text-[var(--color-text-tertiary)]">
+                          Updated:
+                        </span>
+                        <span className="ml-1 text-[var(--color-text-secondary)]">
+                          {new Date(agent.updated_at).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+
+            {agent.skills && Object.keys(agent.skills).length > 0 && (
+              <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4">
+                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-2 text-[var(--color-neon-lime)]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                  Skills ({Object.keys(agent.skills).length})
+                </h4>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {Object.entries(agent.skills).map(
                     ([skillName, skillData]) => (
                       <div
                         key={skillName}
-                        className="border-t border-[#30363d] pt-2"
+                        className="bg-[var(--color-bg-secondary)] rounded-lg border border-[var(--color-border-secondary)] p-3"
                       >
-                        <h5 className="text-xs font-medium text-[#c9d1d9] capitalize">
-                          {skillName}
-                        </h5>
-                        {formatSkillData(skillData)}
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="text-sm font-medium text-[var(--color-text-primary)] capitalize flex items-center">
+                            <span className="w-2 h-2 rounded-full bg-[var(--color-neon-cyan)] mr-2"></span>
+                            {skillName}
+                          </h5>
+                          <span
+                            className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${
+                              (skillData as any)?.enabled
+                                ? "bg-[var(--color-neon-lime-subtle)] text-[var(--color-neon-lime)] border border-[var(--color-neon-lime-border)]"
+                                : "bg-[var(--color-text-muted)] text-[var(--color-bg-primary)] border border-[var(--color-border-secondary)]"
+                            }`}
+                          >
+                            {(skillData as any)?.enabled
+                              ? "✓ Enabled"
+                              : "○ Disabled"}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2 text-xs">
+                          {(skillData as any)?.api_key_provider && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[var(--color-text-tertiary)]">
+                                Provider:
+                              </span>
+                              <span className="text-[var(--color-text-secondary)] font-medium">
+                                {(skillData as any).api_key_provider}
+                              </span>
+                            </div>
+                          )}
+
+                          {(skillData as any)?.api_key && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-[var(--color-text-tertiary)]">
+                                API Key:
+                              </span>
+                              <span className="text-[var(--color-text-secondary)] font-mono">
+                                ●●●●●●●●●●●●●●●●
+                              </span>
+                            </div>
+                          )}
+
+                          {(skillData as any)?.states &&
+                            Object.keys((skillData as any).states).length >
+                              0 && (
+                              <div>
+                                <span className="text-[var(--color-text-tertiary)] font-medium">
+                                  States:
+                                </span>
+                                <div className="mt-1 grid grid-cols-1 gap-1">
+                                  {Object.entries(
+                                    (skillData as any).states
+                                  ).map(([stateName, stateValue]) => (
+                                    <div
+                                      key={stateName}
+                                      className="flex items-center justify-between bg-[var(--color-bg-tertiary)] px-2 py-1 rounded border border-[var(--color-border-tertiary)]"
+                                    >
+                                      <span className="text-[var(--color-text-tertiary)] text-xs">
+                                        {stateName}:
+                                      </span>
+                                      <span
+                                        className={`text-xs font-medium ${
+                                          stateValue === "public"
+                                            ? "text-[var(--color-neon-lime)]"
+                                            : stateValue === "private"
+                                            ? "text-[var(--color-neon-purple)]"
+                                            : "text-[var(--color-text-secondary)]"
+                                        }`}
+                                      >
+                                        {String(stateValue)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                        </div>
                       </div>
                     )
                   )}

@@ -259,7 +259,10 @@ const Home: React.FC = (): JSX.Element => {
                     onNewChatCreated={handleNewChatCreated}
                   />
                 ) : (
-                  <AgentDetail agent={selectedAgent} />
+                  <AgentDetail
+                    agent={selectedAgent}
+                    onToggleViewMode={toggleViewMode}
+                  />
                 )
               ) : (
                 <div

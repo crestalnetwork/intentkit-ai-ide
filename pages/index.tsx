@@ -60,8 +60,8 @@ const Home: React.FC = (): JSX.Element => {
         "Home.refreshSelectedAgent"
       );
       try {
-        // Use the new API client to fetch updated agent data
-        const updatedAgent = await apiClient.getAgent(selectedAgent.id!);
+        // Use the user-specific endpoint to fetch updated agent data with system prompts
+        const updatedAgent = await apiClient.getUserAgent(selectedAgent.id!);
         setSelectedAgent(updatedAgent);
         logger.info(
           "Agent refreshed successfully",
@@ -125,13 +125,32 @@ const Home: React.FC = (): JSX.Element => {
     apiClient.updateBaseUrl(newUrl);
   };
 
-  const handleAgentSelect = (agent: Agent) => {
+  const handleAgentSelect = async (agent: Agent) => {
     logger.info(
       "Agent selected",
       { agentId: agent.id, agentName: agent.name },
       "Home.handleAgentSelect"
     );
-    setSelectedAgent(agent);
+
+    try {
+      // Fetch complete agent data including system prompts
+      const completeAgent = await apiClient.getUserAgent(agent.id!);
+      setSelectedAgent(completeAgent);
+      logger.info(
+        "Complete agent data loaded",
+        { agentId: agent.id },
+        "Home.handleAgentSelect"
+      );
+    } catch (error: any) {
+      logger.error(
+        "Failed to load complete agent data, using partial data",
+        { agentId: agent.id, error: error.message },
+        "Home.handleAgentSelect"
+      );
+      // Fallback to the agent data from the list if fetch fails
+      setSelectedAgent(agent);
+    }
+
     setSelectedThread(null); // Clear current thread when switching agents
     setViewMode("chat");
   };
@@ -259,7 +278,10 @@ const Home: React.FC = (): JSX.Element => {
                     onNewChatCreated={handleNewChatCreated}
                   />
                 ) : (
-                  <AgentDetail agent={selectedAgent} />
+                  <AgentDetail
+                    agent={selectedAgent}
+                    onToggleViewMode={toggleViewMode}
+                  />
                 )
               ) : (
                 <div

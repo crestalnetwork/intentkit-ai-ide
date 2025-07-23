@@ -11,6 +11,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   onAgentCreated,
   currentProjectId,
   selectedTemplate,
+  onOpenTemplateSelector,
 }) => {
   const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -129,7 +130,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       // Add a success message to the conversation
       const successMessage: ConversationMessage = {
         role: "assistant",
-        content: `Great! I've configured your ${selectedTemplate.name} agent from the template. Your agent configuration is ready! Click the "Deploy Agent" button to make it live.`,
+        content: `✅ Your ${selectedTemplate.name} agent configuration is ready! Would you like to deploy this agent now, or make further edits before going live?\n\n🔧 CDP wallet integration will be automatically set up during deployment.`,
         created_at: new Date().toISOString(),
         metadata: {
           agent: agentData,
@@ -291,7 +292,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       };
       setMessages((prev) => [...prev, aiMessage]);
 
-      showToast.success("Agent configuration generated successfully!");
+      showToast.success(
+        "Agent configuration ready! Click Deploy Agent to make it live."
+      );
     } catch (error: any) {
       logger.error(
         "Failed to generate agent",
@@ -404,10 +407,24 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         `Agent "${createdAgent.name || "Unnamed Agent"}" deployed successfully!`
       );
 
-      // Add deployment success message
+      // Add deployment success message with wallet info if available
+      let deployContent = `🎉 Excellent! Your agent "${deployedAgent.name}" has been successfully deployed and is now ready to use! You can find it in the agents list on the main page.`;
+
+      if (deployedAgent.cdp_wallet_address) {
+        deployContent += `\n\n💼 CDP Wallet provisioned: ${deployedAgent.cdp_wallet_address.slice(
+          0,
+          6
+        )}...${deployedAgent.cdp_wallet_address.slice(-4)}`;
+        if (deployedAgent.network_id || deployedAgent.cdp_network_id) {
+          deployContent += `\n🌐 Network: ${
+            deployedAgent.network_id || deployedAgent.cdp_network_id
+          }`;
+        }
+      }
+
       const deployMessage: ConversationMessage = {
         role: "assistant",
-        content: `🎉 Excellent! Your agent "${deployedAgent.name}" has been successfully deployed and is now ready to use! You can find it in the agents list on the main page.`,
+        content: deployContent,
         created_at: new Date().toISOString(),
         metadata: {
           deployedAgent: deployedAgent,
@@ -546,50 +563,84 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     return (
       <div
         key={index}
-        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
+        className={`flex ${isUser ? "justify-end" : "justify-start"} mb-3`}
       >
         <div
-          className={`max-w-[80%] rounded-lg px-4 py-3 ${
+          className={`max-w-[80%] rounded-lg px-3 py-2 ${
             isUser
-              ? "bg-[#0969da] text-white"
-              : "bg-[#161b22] border border-[#30363d] text-[#c9d1d9]"
+              ? "bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] neon-glow-lime"
+              : "bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] text-[var(--color-text-primary)]"
           }`}
         >
-          <div className="whitespace-pre-wrap break-words">
+          <div className="whitespace-pre-wrap break-words text-sm">
             {message.content}
           </div>
 
           {/* Show agent preview if this message contains agent data */}
           {message.metadata?.agent && (
-            <div className="mt-4 p-3 bg-[#0d1117] rounded border border-[#21262d]">
-              <div className="text-sm font-medium text-[#58a6ff] mb-2">
-                ✨ Agent Configuration Generated!
+            <div className="mt-3 p-3 bg-[var(--color-bg-secondary)] rounded border border-[var(--color-border-secondary)]">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium text-[var(--color-neon-cyan)]">
+                  ✅ Your agent configuration is ready!
+                </div>
+                {!message.metadata.agent.id && (
+                  <button
+                    onClick={handleDeployAgent}
+                    disabled={deployLoading}
+                    className="text-xs py-1.5 px-3 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] disabled:opacity-50 disabled:cursor-not-allowed neon-glow-lime hover-neon-glow-lime transition-all font-medium"
+                  >
+                    {deployLoading ? "🚀 Deploying..." : "🚀 Deploy Agent"}
+                  </button>
+                )}
+                {message.metadata.agent.id && (
+                  <span className="text-xs py-1.5 px-3 bg-[var(--color-success)] text-[var(--color-text-on-primary)] rounded font-medium">
+                    ✅ Deployed
+                  </span>
+                )}
               </div>
+              <p className="text-xs text-[var(--color-text-tertiary)] mb-2">
+                Would you like to deploy this agent now, or make further edits
+                before going live?
+              </p>
               <div className="text-xs space-y-1">
                 <div>
-                  <span className="text-[#7d8590]">Name:</span>{" "}
-                  {message.metadata.agent.name || "Unnamed Agent"}
+                  <span className="text-[var(--color-text-tertiary)]">
+                    Name:
+                  </span>{" "}
+                  <span className="text-[var(--color-text-primary)]">
+                    {message.metadata.agent.name || "Unnamed Agent"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#7d8590]">Purpose:</span>{" "}
-                  {message.metadata.agent.purpose || "No purpose defined"}
+                  <span className="text-[var(--color-text-tertiary)]">
+                    Purpose:
+                  </span>{" "}
+                  <span className="text-[var(--color-text-secondary)]">
+                    {message.metadata.agent.purpose || "No purpose defined"}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-[#7d8590]">Model:</span>{" "}
-                  {message.metadata.agent.model || "Default"}
+                  <span className="text-[var(--color-text-tertiary)]">
+                    Model:
+                  </span>{" "}
+                  <span className="text-[var(--color-text-secondary)]">
+                    {message.metadata.agent.model || "Default"}
+                  </span>
                 </div>
 
                 {/* Show activated skills from API response */}
                 {message.metadata.activatedSkills &&
                   message.metadata.activatedSkills.length > 0 && (
                     <div>
-                      <span className="text-[#7d8590]">Activated Skills:</span>
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Activated Skills:
+                      </span>
                       <div className="mt-1">
                         {message.metadata.activatedSkills.map(
                           (skillName: string) => (
                             <span
                               key={skillName}
-                              className="inline-flex items-center bg-[#21262d] text-[#58a6ff] text-xs px-2 py-1 rounded mr-1 mb-1"
+                              className="inline-flex items-center bg-[var(--color-neon-cyan-subtle)] text-[var(--color-neon-cyan)] text-xs px-2 py-1 rounded mr-1 mb-1 border border-[var(--color-neon-cyan-border)]"
                             >
                               {skillName}
                             </span>
@@ -601,7 +652,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
                 {/* Show configured skills (editable) */}
                 <div>
-                  <span className="text-[#7d8590]">Configured Skills:</span>{" "}
+                  <span className="text-[var(--color-text-tertiary)]">
+                    Configured Skills:
+                  </span>{" "}
                   {Object.keys(message.metadata.agent.skills || {}).length >
                   0 ? (
                     <div className="mt-1">
@@ -609,7 +662,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                         (skillName) => (
                           <span
                             key={skillName}
-                            className="inline-flex items-center bg-[#21262d] text-[#58a6ff] text-xs px-2 py-1 rounded mr-1 mb-1 group"
+                            className="inline-flex items-center bg-[var(--color-neon-lime-subtle)] text-[var(--color-neon-lime)] text-xs px-2 py-1 rounded mr-1 mb-1 border border-[var(--color-neon-lime-border)] group"
                           >
                             {skillName}
                             <button
@@ -618,7 +671,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                                 e.stopPropagation();
                                 removeSkillFromAgent(skillName);
                               }}
-                              className="ml-1 text-[#8b949e] hover:text-[#f85149] transition-colors opacity-0 group-hover:opacity-100"
+                              className="ml-1 text-[var(--color-text-muted)] hover:text-[var(--color-neon-pink)] transition-colors opacity-0 group-hover:opacity-100"
                               title={`Remove ${skillName} skill`}
                             >
                               ×
@@ -628,7 +681,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                       )}
                     </div>
                   ) : (
-                    "No skills configured"
+                    <span className="text-[var(--color-text-secondary)]">
+                      No skills configured
+                    </span>
                   )}
                 </div>
 
@@ -636,19 +691,74 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                 {message.metadata.autonomousTasks &&
                   message.metadata.autonomousTasks.length > 0 && (
                     <div>
-                      <span className="text-[#7d8590]">Autonomous Tasks:</span>{" "}
-                      <span className="text-[#c9d1d9]">
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Autonomous Tasks:
+                      </span>{" "}
+                      <span className="text-[var(--color-text-secondary)]">
                         {message.metadata.autonomousTasks.length} task(s)
                         configured
                       </span>
                     </div>
                   )}
 
+                {/* Show CDP wallet information if available */}
+                {message.metadata?.agent &&
+                  (message.metadata.agent.wallet_provider === "cdp" ||
+                    message.metadata.agent.cdp_wallet_address) && (
+                    <div>
+                      <span className="text-[var(--color-text-tertiary)]">
+                        Wallet:
+                      </span>{" "}
+                      <span className="text-[var(--color-neon-cyan)]">
+                        CDP enabled
+                      </span>
+                      {message.metadata.agent.cdp_wallet_address && (
+                        <div className="mt-1 flex items-center space-x-2">
+                          <span className="text-[var(--color-text-tertiary)] text-xs">
+                            Address:
+                          </span>
+                          <code className="text-[var(--color-text-secondary)] font-mono text-xs bg-[var(--color-bg-secondary)] px-1 py-0.5 rounded">
+                            {message.metadata.agent.cdp_wallet_address}
+                          </code>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              if (message.metadata?.agent?.cdp_wallet_address) {
+                                navigator.clipboard.writeText(
+                                  message.metadata.agent.cdp_wallet_address
+                                );
+                              }
+                            }}
+                            className="text-[var(--color-text-muted)] hover:text-[var(--color-neon-cyan)] transition-colors text-xs"
+                            title="Copy wallet address"
+                          >
+                            📋
+                          </button>
+                        </div>
+                      )}
+                      {(message.metadata.agent.network_id ||
+                        message.metadata.agent.cdp_network_id) && (
+                        <div className="mt-1">
+                          <span className="text-[var(--color-text-tertiary)] text-xs">
+                            Network:
+                          </span>{" "}
+                          <span className="text-[var(--color-text-secondary)] text-xs">
+                            {message.metadata.agent.network_id ||
+                              message.metadata.agent.cdp_network_id}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 {/* Show project ID for tracking */}
                 {message.metadata.projectId && (
                   <div>
-                    <span className="text-[#7d8590]">Project ID:</span>{" "}
-                    <span className="text-[#c9d1d9] font-mono text-xs">
+                    <span className="text-[var(--color-text-tertiary)]">
+                      Project ID:
+                    </span>{" "}
+                    <span className="text-[var(--color-text-secondary)] font-mono text-xs">
                       {message.metadata.projectId}
                     </span>
                   </div>
@@ -658,7 +768,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           )}
 
           {message.created_at && (
-            <div className="text-xs opacity-70 mt-2">
+            <div className="text-xs text-[var(--color-text-muted)] mt-2 opacity-70">
               {new Date(message.created_at).toLocaleTimeString()}
             </div>
           )}
@@ -669,16 +779,16 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
   const renderTypingIndicator = () => {
     return (
-      <div className="flex justify-start mb-4">
-        <div className="bg-[#161b22] border border-[#30363d] text-[#c9d1d9] rounded-lg px-4 py-3">
+      <div className="flex justify-start mb-3">
+        <div className="bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] text-[var(--color-text-primary)] rounded-lg px-3 py-2">
           <div className="flex space-x-1">
-            <div className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"></div>
             <div
-              className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"
+              className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"
               style={{ animationDelay: "0.1s" }}
             ></div>
             <div
-              className="w-2 h-2 bg-[#58a6ff] rounded-full animate-bounce"
+              className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"
               style={{ animationDelay: "0.2s" }}
             ></div>
           </div>
@@ -693,49 +803,88 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   }, [messages]);
 
   return (
-    <div className="bg-[#0d1117] rounded-xl border border-[#30363d] h-full flex flex-col">
-      {/* Header */}
-      <div className="border-b border-[#30363d] p-4">
+    <div className="bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border-primary)] h-full flex flex-col">
+      {/* Compact Header */}
+      <div className="border-b border-[var(--color-border-primary)] p-3">
         <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-[#c9d1d9]">
-            {selectedTemplate
-              ? `Create ${selectedTemplate.name}`
-              : "AI Agent Creator"}
-          </h2>
-          {createdAgent && (
-            <div className="flex space-x-2">
-              {!createdAgent.id ? (
-                <button
-                  onClick={handleDeployAgent}
-                  disabled={deployLoading}
-                  className="text-sm py-1.5 px-3 bg-[#0969da] text-white rounded hover:bg-[#0550ae] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {deployLoading ? "🚀 Deploying..." : "🚀 Deploy Agent"}
-                </button>
-              ) : (
-                <span className="text-sm py-1.5 px-3 bg-[#238636] text-white rounded">
-                  ✅ Deployed
-                </span>
+          <div className="flex-1">
+            <div className="flex items-center space-x-3">
+              <div>
+                <h2 className="text-base font-semibold text-[var(--color-text-primary)]">
+                  {selectedTemplate
+                    ? `Create ${selectedTemplate.name}`
+                    : "AI Agent Creator"}
+                </h2>
+                <p className="text-xs text-[var(--color-text-tertiary)] mt-0.5">
+                  {createdAgent
+                    ? createdAgent.id
+                      ? "Agent successfully deployed and ready to use"
+                      : "Agent configuration ready - deploy to make it live"
+                    : "Describe your agent and I'll help you create it"}
+                </p>
+              </div>
+
+              {/* Selected Template Display */}
+              {selectedTemplate && (
+                <div className="flex items-center space-x-2 px-2 py-1 bg-[var(--color-neon-lime-subtle)] border border-[var(--color-neon-lime-border)] rounded text-xs">
+                  <span className="text-sm">{selectedTemplate.icon}</span>
+                  <span className="text-[var(--color-text-primary)] font-medium">
+                    {selectedTemplate.name}
+                  </span>
+                </div>
               )}
-              <button
-                onClick={handleExportAgent}
-                className="text-sm py-1.5 px-3 bg-[#238636] text-white rounded hover:bg-[#2ea043] transition-colors"
-              >
-                📥 Export Schema
-              </button>
             </div>
-          )}
+          </div>
+
+          <div className="flex items-center space-x-2">
+            {/* Template Button - Only show if no agent is created yet */}
+            {!createdAgent && (
+              <button
+                onClick={() => {
+                  if (onOpenTemplateSelector) {
+                    onOpenTemplateSelector();
+                  }
+                }}
+                className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-bg-card)] text-[var(--color-neon-cyan)] border border-[var(--color-neon-cyan-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan)] hover-neon-glow-cyan transition-all duration-200 font-medium"
+              >
+                <svg
+                  className="w-3 h-3"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                  />
+                </svg>
+                <span>Templates</span>
+              </button>
+            )}
+
+            {/* Agent Action Buttons */}
+            {createdAgent && (
+              <>
+                {createdAgent.id && (
+                  <span className="text-xs py-1.5 px-3 bg-[var(--color-success)] text-[var(--color-text-on-primary)] rounded font-medium">
+                    ✅ Deployed
+                  </span>
+                )}
+                <button
+                  onClick={handleExportAgent}
+                  className="text-xs py-1.5 px-3 bg-[var(--color-neon-cyan)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-cyan-bright)] hover-neon-glow-cyan transition-all font-medium"
+                >
+                  📥 Export
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        <p className="text-sm text-[#8b949e] mt-1">
-          {createdAgent
-            ? createdAgent.id
-              ? "Agent successfully deployed and ready to use"
-              : "Agent configuration ready - deploy to make it live"
-            : "Describe your agent and I'll help you create it"}
-        </p>
         {!isAuthenticated && (
-          <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-xs">
-            <p className="text-yellow-800">
+          <div className="mt-2 p-2 bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] rounded text-xs">
+            <p className="text-[var(--color-neon-pink)]">
               <strong>Authentication Required:</strong> Please sign in to create
               agents
             </p>
@@ -743,16 +892,16 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         )}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      {/* Messages - Flexible height */}
+      <div className="flex-1 overflow-y-auto p-3 space-y-3 min-h-0">
         {messages.map((message, index) => renderMessage(message, index))}
         {loading && renderTypingIndicator()}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Chat Input */}
+      {/* Chat Input - Fixed at bottom */}
       {isAuthenticated && (
-        <div className="border-t border-[#30363d] p-4">
+        <div className="border-t border-[var(--color-border-primary)] p-3">
           <div className="space-y-2">
             <div className="flex space-x-2">
               <input
@@ -761,7 +910,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Describe the agent you want to create..."
-                className="flex-1 bg-[#161b22] border border-[#30363d] rounded-lg px-4 py-2 text-[#c9d1d9] placeholder-[#8b949e] focus:border-[#58a6ff] focus:outline-none"
+                className="flex-1 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-neon-lime-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] transition-all text-sm"
                 disabled={loading}
                 maxLength={1000}
               />
@@ -770,7 +919,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                 disabled={
                   loading || !inputValue.trim() || inputValue.trim().length < 10
                 }
-                className="bg-[#238636] text-white px-4 py-2 rounded-lg hover:bg-[#2ea043] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] px-4 py-2 rounded hover:bg-[var(--color-neon-lime-bright)] disabled:opacity-50 disabled:cursor-not-allowed neon-glow-lime hover-neon-glow-lime transition-all font-medium text-sm"
               >
                 {loading ? "Generating..." : "Send"}
               </button>
@@ -778,23 +927,25 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
             {/* Character count and validation */}
             <div className="flex justify-between text-xs">
-              <div className="text-[#8b949e]">
+              <div className="text-[var(--color-text-tertiary)]">
                 {inputValue.length < 10 && inputValue.length > 0 && (
-                  <span className="text-[#f85149]">
+                  <span className="text-[var(--color-neon-pink)]">
                     Minimum 10 characters required
                   </span>
                 )}
                 {inputValue.length >= 10 && (
-                  <span className="text-[#238636]">Ready to generate</span>
+                  <span className="text-[var(--color-neon-lime)]">
+                    Ready to generate
+                  </span>
                 )}
               </div>
               <div
                 className={`${
                   inputValue.length > 900
-                    ? "text-[#f85149]"
+                    ? "text-[var(--color-neon-pink)]"
                     : inputValue.length > 800
-                    ? "text-[#e3b341]"
-                    : "text-[#8b949e]"
+                    ? "text-[var(--color-warning)]"
+                    : "text-[var(--color-text-tertiary)]"
                 }`}
               >
                 {inputValue.length}/1000
@@ -806,9 +957,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
       {/* Authentication Warning */}
       {!isAuthenticated && (
-        <div className="border-t border-[#30363d] p-4">
-          <div className="bg-[#fef3cd]/10 border border-[#fef3cd]/20 rounded-lg p-3 text-center">
-            <p className="text-[#fef3cd] text-sm">
+        <div className="border-t border-[var(--color-border-primary)] p-3">
+          <div className="bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] rounded p-3 text-center">
+            <p className="text-[var(--color-neon-pink)] text-sm">
               Please sign in to create and deploy agents
             </p>
           </div>

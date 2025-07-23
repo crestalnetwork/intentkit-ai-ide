@@ -99,6 +99,7 @@ export interface ChatInterfaceProps {
 
 export interface AgentDetailProps {
   agent: Agent;
+  onToggleViewMode?: () => void;
 }
 
 export interface AgentCreatorProps {
@@ -106,6 +107,7 @@ export interface AgentCreatorProps {
   selectedTemplate?: AgentTemplate;
   currentProjectId?: string;
   onAgentCreated?: (agent: any) => void;
+  onOpenTemplateSelector?: () => void;
 }
 
 export interface TemplateCreatorProps {

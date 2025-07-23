@@ -117,11 +117,11 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
   };
 
   return (
-    <div className="bg-[#000000] border-r border-[#30363d] flex flex-col h-full">
+    <div className="bg-[var(--color-bg-primary)] border-r border-[var(--color-border-primary)] flex flex-col h-full">
       {/* Header */}
-      <div className="p-2 border-b border-[#30363d]">
+      <div className="p-2 border-b border-[var(--color-border-primary)]">
         <div className="flex items-center justify-between mb-2">
-          <h2 className="text-sm font-semibold text-[#ffffff]">
+          <h2 className="text-sm font-semibold text-[var(--color-text-primary)]">
             Conversations
           </h2>
         </div>
@@ -129,14 +129,14 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
         {/* Agent Selector */}
         <button
           onClick={onAgentSelect}
-          className="w-full p-2 bg-[#161b22] border border-[#30363d] rounded text-left hover:bg-[#21262d] hover:border-[#8b949e] transition-all duration-200"
+          className="w-full p-2 bg-[var(--color-bg-card)] border border-[var(--color-border-primary)] rounded text-left hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan-border)] hover:neon-glow-cyan-subtle transition-all duration-200"
         >
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-[#ffffff] truncate">
+              <div className="text-sm font-medium text-[var(--color-text-primary)] truncate">
                 {agentDisplayName}
               </div>
-              <div className="text-xs text-[#8b949e]">
+              <div className="text-xs text-[var(--color-text-tertiary)]">
                 {selectedAgent
                   ? selectedAgent.name && selectedAgent.id
                     ? `ID: ${selectedAgent.id} • Click to change`
@@ -145,7 +145,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
               </div>
             </div>
             <svg
-              className="w-4 h-4 text-[#8b949e] flex-shrink-0 ml-2"
+              className="w-4 h-4 text-[var(--color-text-tertiary)] flex-shrink-0 ml-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -208,8 +208,8 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
                 onClick={() => onThreadSelect(thread)}
                 className={`w-full p-2 text-left rounded transition-all duration-200 ${
                   selectedThreadId === thread.id
-                    ? "bg-[#238636] text-white"
-                    : "bg-transparent text-[#c9d1d9] hover:bg-[#161b22]"
+                    ? "bg-[var(--color-neon-cyan)] text-black neon-glow-cyan"
+                    : "bg-transparent text-[var(--color-text-primary)] hover:bg-[var(--color-bg-tertiary)] hover:neon-glow-cyan-subtle"
                 }`}
               >
                 <div className="flex items-start justify-between">
@@ -225,7 +225,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
                   </div>
                   {selectedThreadId === thread.id && (
                     <div className="ml-2 flex-shrink-0">
-                      <div className="w-2 h-2 bg-white rounded-full"></div>
+                      <div className="w-2 h-2 bg-black rounded-full"></div>
                     </div>
                   )}
                 </div>

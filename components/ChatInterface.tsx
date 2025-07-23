@@ -521,10 +521,10 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 "ChatInterface.newChat"
               );
             }}
-            className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover:neon-glow-lime transition-all duration-200 whitespace-nowrap font-medium"
+            className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover:neon-glow-lime transition-all duration-200 whitespace-nowrap font-medium"
           >
             <svg
-              className="w-3 h-3 sm:w-4 sm:h-4"
+              className="w-4 h-4"
               fill="none"
               stroke="var(--color-text-on-primary)"
               viewBox="0 0 24 24"
@@ -536,17 +536,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                 d="M12 4v16m8-8H4"
               />
             </svg>
-            <span className="hidden sm:inline">New Chat</span>
-            <span className="sm:hidden">New</span>
+            <span>New Chat</span>
           </button>
 
           {onToggleViewMode && (
             <button
               onClick={onToggleViewMode}
-              className="inline-flex items-center space-x-1 text-xs py-1 px-2 bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] rounded border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan-border)] hover-neon-glow-cyan transition-all duration-200 whitespace-nowrap"
+              className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] rounded border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan-border)] hover-neon-glow-cyan transition-all duration-200 whitespace-nowrap"
             >
               <svg
-                className="w-3 h-3 sm:w-4 sm:h-4"
+                className="w-4 h-4"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -558,11 +557,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <span className="hidden sm:inline">
+              <span>
                 {viewMode === "chat" ? "View Details" : "Back to Chat"}
-              </span>
-              <span className="sm:hidden">
-                {viewMode === "chat" ? "Details" : "Chat"}
               </span>
             </button>
           )}

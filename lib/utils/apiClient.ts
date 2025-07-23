@@ -30,9 +30,9 @@ export interface Agent {
   ticker?: string;
   mode?: 'public' | 'private';
   fee_percentage?: number | string;
-  purpose: string;
-  personality: string;
-  principles: string;
+  purpose?: string;
+  personality?: string;
+  principles?: string;
   owner?: string;
   upstream_id?: string;
   upstream_extra?: Record<string, any>;

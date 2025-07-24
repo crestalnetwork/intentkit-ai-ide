@@ -347,7 +347,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       // Add error message to conversation
       const errorMsg: ConversationMessage = {
         role: "assistant",
-        content: `I apologize, but I encountered an error while generating your agent: ${errorMessage}. Please try again with a different description.`,
+        content: `I apologize, but I encountered an error while generating your agent: ${errorMessage}. Please try again with a different description, or copy support@crestal.network from your profile menu if the issue persists.`,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -471,7 +471,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
       const failureMessage: ConversationMessage = {
         role: "assistant",
-        content: `❌ ${errorMessage}`,
+        content: `❌ ${errorMessage}. If this error persists, copy support@crestal.network from your profile menu for assistance.`,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, failureMessage]);

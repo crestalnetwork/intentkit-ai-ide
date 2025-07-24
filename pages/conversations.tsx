@@ -36,12 +36,12 @@ const ConversationsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0d1117] flex flex-col h-screen">
       <Head>
-        <title>Conversation History - IntentKit AI</title>
+        <title>Conversation History - IntentKit.ai (IntentKit)</title>
         <meta
           name="description"
           content="View your agent creation conversation history"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       {/* Header */}

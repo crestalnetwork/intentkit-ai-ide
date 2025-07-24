@@ -234,14 +234,17 @@ const Home: React.FC = (): JSX.Element => {
       className={`min-h-screen bg-[${theme.colors.background.primary}] flex flex-col h-screen`}
     >
       <Head>
-        <title>IntentKit AI</title>
-        <meta name="description" content="Chat with your IntentKit agents" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>IntentKit.ai (IntentKit)</title>
+        <meta
+          name="description"
+          content="Launch and Deploy AI Agents Instantly — No Code Required"
+        />
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       {/* Header */}
       <Header
-        title="IntentKit AI"
+        title="IntentKit.ai"
         rightActions={rightActions}
         showBaseUrl={false}
         baseUrl={baseUrl}

@@ -28,6 +28,7 @@ export const SOCIAL_LINKS = {
   TELEGRAM: "https://t.me/crestal_network",
   WEBSITE: "https://www.crestal.network/",
   DOCS: "https://docs.crestal.network/",
+  EMAIL: "support@crestal.network",
 };
 
 // API Endpoints

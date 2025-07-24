@@ -6,6 +6,7 @@ import logger from "../lib/utils/logger";
 import AuthModal from "./AuthModal";
 import theme from "../lib/utils/theme";
 import Settings from "./Settings";
+import ContactSupport from "./ContactSupport";
 
 interface HeaderProps {
   title: string;
@@ -302,6 +303,14 @@ const Header: React.FC<HeaderProps> = ({
                           <span>Settings</span>
                         </button>
                       )}
+                      <div className="w-full px-3 sm:px-4 py-2 sm:py-3">
+                        <ContactSupport
+                          reason="general"
+                          message="Copy Support Email"
+                          className="w-full justify-center text-xs sm:text-sm bg-transparent border-[var(--color-border-secondary)] text-[var(--color-text-secondary)]"
+                          showIcon={true}
+                        />
+                      </div>
                       <hr className="border-[#d0ff16]/20 my-1" />
                       <button
                         onClick={handleProfileSignOut}

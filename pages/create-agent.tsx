@@ -49,12 +49,12 @@ const CreateAgentPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col h-screen">
       <Head>
-        <title>Create Agent - IntentKit AI</title>
+        <title>Create Agent - IntentKit.ai (IntentKit)</title>
         <meta
           name="description"
-          content="Create a new IntentKit agent with AI assistance"
+          content="Launch and Deploy AI Agents Instantly — No Code Required"
         />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.png" />
       </Head>
 
       {/* Header */}

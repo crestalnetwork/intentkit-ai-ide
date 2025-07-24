@@ -216,6 +216,15 @@ class ApiClient {
           localStorage.removeItem(STORAGE_KEYS.USER_SESSION);
           logger.auth('Token expired, cleared auth data', { url });
           showToast.error('Authentication expired. Please sign in again.');
+        } else if (status === 402) {
+          // Payment required - credits issue
+          showToast.error('Insufficient credits. Copy support@crestal.network from your profile menu for billing assistance.');
+        } else if (status === 429) {
+          // Rate limited / quota exceeded
+          showToast.error('Rate limit exceeded. Copy support@crestal.network from your profile menu if this persists.');
+        } else if (status >= 500) {
+          // Server error
+          showToast.error('Server error occurred. Copy support@crestal.network from your profile menu if this continues.');
         }
         return Promise.reject(error);
       }

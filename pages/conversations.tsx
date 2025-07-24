@@ -49,7 +49,7 @@ const ConversationsPage: React.FC = () => {
         title="Conversation History"
         backLink={{
           href: "/",
-          label: "Back to Sandbox",
+          label: "Home",
         }}
         rightActions={rightActions}
         showBaseUrl={true}

@@ -5,6 +5,7 @@ import { templateToAgentConfig } from "../lib/utils/templateUtils";
 import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import apiClient, { Agent, AgentGenerateRequest } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
+import SkillsPanel from "./SkillsPanel";
 
 const AgentCreator: React.FC<AgentCreatorProps> = ({
   baseUrl,
@@ -19,6 +20,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   const [deployLoading, setDeployLoading] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>("");
   const [projectId, setProjectId] = useState<string | null>(null);
+  const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useSupabaseAuth();
@@ -557,6 +559,78 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     setMessages((prev) => [...prev, removalMessage]);
   };
 
+  // TODO: handleAddSkill function - will be implemented later
+  /*
+  const handleAddSkill = (skillName: string, skillConfig: any) => {
+    if (!createdAgent) {
+      showToast.error("Please create an agent first before adding skills");
+      return;
+    }
+
+    logger.info(
+      "Adding skill to agent",
+      {
+        skillName,
+        agentName: createdAgent.name,
+      },
+      "AgentCreator.handleAddSkill"
+    );
+
+    const updatedAgent = { ...createdAgent };
+    if (!updatedAgent.skills) {
+      updatedAgent.skills = {};
+    }
+
+    // Merge the skill configuration
+    updatedAgent.skills = {
+      ...updatedAgent.skills,
+      ...skillConfig,
+    };
+
+    setCreatedAgent(updatedAgent);
+
+    // Update all existing messages that contain agent metadata
+    setMessages((prevMessages) => {
+      return prevMessages.map((msg) => {
+        if (msg.metadata?.agent && msg.role === "assistant") {
+          return {
+            ...msg,
+            metadata: {
+              ...msg.metadata,
+              agent: updatedAgent,
+            },
+          };
+        }
+        return msg;
+      });
+    });
+
+    // Add a message showing the skill was added
+    const additionMessage: ConversationMessage = {
+      role: "assistant",
+      content: `✅ Added "${skillName}" skill to the agent. The agent schema has been updated and ready for deployment.`,
+      created_at: new Date().toISOString(),
+      metadata: {
+        agent: updatedAgent,
+        skillAdded: skillName,
+      },
+    };
+
+    setMessages((prev) => [...prev, additionMessage]);
+    setShowSkillsPanel(false);
+    showToast.success(`✨ Added skill: ${skillName}`);
+  };
+  */
+
+  // Placeholder function for now
+  const handleAddSkill = (skillName: string, skillConfig: any) => {
+    console.log(
+      "Add skill functionality will be implemented later",
+      skillName,
+      skillConfig
+    );
+  };
+
   const renderMessage = (message: ConversationMessage, index: number) => {
     const isUser = message.role === "user";
 
@@ -837,6 +911,27 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           </div>
 
           <div className="flex items-center space-x-2">
+            {/* View All Skills Button */}
+            <button
+              onClick={() => setShowSkillsPanel(true)}
+              className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-bg-card)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-purple)] hover-neon-glow-purple transition-all duration-200 font-medium"
+            >
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                />
+              </svg>
+              <span>View All Skills</span>
+            </button>
+
             {/* Template Button - Only show if no agent is created yet */}
             {!createdAgent && (
               <button
@@ -965,6 +1060,13 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           </div>
         </div>
       )}
+
+      {/* Skills Panel */}
+      <SkillsPanel
+        isVisible={showSkillsPanel}
+        onClose={() => setShowSkillsPanel(false)}
+        onAddSkill={handleAddSkill}
+      />
     </div>
   );
 };

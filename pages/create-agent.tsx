@@ -62,7 +62,7 @@ const CreateAgentPage: React.FC = () => {
         title="Create New Agent"
         backLink={{
           href: "/",
-          label: "Back to Sandbox",
+          label: "Home",
         }}
         showBaseUrl={false}
         baseUrl={baseUrl}

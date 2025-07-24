@@ -63,7 +63,7 @@ const ContactSupport: React.FC<ContactSupportProps> = ({
         text-[var(--color-text-primary)] bg-[var(--color-bg-secondary)]
         border border-[var(--color-border-primary)] rounded-lg
         hover:bg-[var(--color-neon-cyan-subtle)] hover:border-[var(--color-neon-cyan)]
-        hover:text-white transition-all duration-200
+        hover:text-white transition-all duration-200 cursor-pointer
         ${className}
       `}
     >

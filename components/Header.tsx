@@ -156,13 +156,16 @@ const Header: React.FC<HeaderProps> = ({
               </Link>
             )}
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 sm:w-8 sm:h-8 bg-transparent rounded flex items-center justify-center p-1">
+              <Link
+                href="/"
+                className="w-6 h-6 sm:w-8 sm:h-8 bg-transparent rounded flex items-center justify-center p-1 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+              >
                 <img
                   src="/images/logo.png"
                   alt="IntentKit Logo"
                   className="w-full h-full object-contain"
                 />
-              </div>
+              </Link>
               <h1 className="text-base sm:text-lg font-bold text-white truncate">
                 {title}
               </h1>

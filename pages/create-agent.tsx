@@ -8,8 +8,8 @@ import TemplateSelector from "../components/TemplateSelector";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { AgentTemplate } from "../lib/utils/templates";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
+import { useAuth } from "@/context/AuthProvider";
 
 const CreateAgentPage: React.FC = () => {
   const router = useRouter();
@@ -19,7 +19,7 @@ const CreateAgentPage: React.FC = () => {
   const [selectedTemplate, setSelectedTemplate] = useState<
     AgentTemplate | undefined
   >(undefined);
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
 
   // Initialize base URL from config
   useEffect(() => {

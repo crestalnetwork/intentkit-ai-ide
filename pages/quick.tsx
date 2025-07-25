@@ -4,7 +4,6 @@ import { useRouter } from "next/router";
 import { AgentTemplate } from "../lib/utils/templates";
 import { templateToPrompt } from "../lib/utils/templateUtils";
 import { showToast } from "../lib/utils/toast";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import apiClient, { AgentGenerateRequest } from "../lib/utils/apiClient";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -13,9 +12,8 @@ import ChatInterface from "../components/ChatInterface";
 import { Agent } from "../lib/types";
 import logger from "../lib/utils/logger";
 import { DEFAULT_BASE_URL } from "../lib/utils/config";
-import theme, { getButtonStyles, getCardStyles } from "../lib/utils/theme";
 import { trackQuickCreatorEvents } from "../lib/utils/mixpanel";
-import AuthModal from "../components/AuthModal";
+import { useAuth } from "@/context/AuthProvider";
 
 const Quick: React.FC = () => {
   const [step, setStep] = useState<"templates" | "creating" | "chat">(
@@ -25,11 +23,8 @@ const Quick: React.FC = () => {
     useState<AgentTemplate | null>(null);
   const [createdAgent, setCreatedAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
-  const { user, isAuthenticated, signIn, signUp } = useSupabaseAuth();
+  const { user, isAuthenticated, handleStartLogin } = useAuth();
   const router = useRouter();
-
-  // Authentication states for the quick modal
-  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   logger.component("mounted", "Quick", {
     step,
@@ -65,7 +60,7 @@ const Quick: React.FC = () => {
         { templateId: template.id },
         "Quick.handleTemplateSelect"
       );
-      setShowAuthModal(true);
+      handleStartLogin();
     } else {
       logger.info(
         "User authenticated, proceeding to create agent",
@@ -459,18 +454,6 @@ const Quick: React.FC = () => {
         {step === "creating" && renderCreatingStep()}
         {step === "chat" && renderChatStep()}
       </main>
-
-      {/* Authentication Modal */}
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onSuccess={handleAuthSuccess}
-        contextInfo={{
-          icon: selectedTemplate?.icon,
-          title: `Ready to create ${selectedTemplate?.name}`,
-          description: "Sign in to get started",
-        }}
-      />
 
       {/* Footer - Only show on templates step */}
       {step === "templates" && (

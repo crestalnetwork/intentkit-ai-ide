@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { AgentDetailProps } from "../lib/types";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import { materialDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import json from "react-syntax-highlighter/dist/cjs/languages/prism/json";
 import axios from "axios";
-import theme from "../lib/utils/theme";
+// import theme from "../lib/utils/theme";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
+
+// Register the json language for PrismLight
+SyntaxHighlighter.registerLanguage("json", json);
 
 const AgentDetail: React.FC<AgentDetailProps> = ({
   agent,
@@ -411,10 +415,10 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
                 📋 Copy
               </button>
             </div>
-            <SyntaxHighlighter
-              language="json"
-              style={materialDark}
-              customStyle={{
+            {(SyntaxHighlighter as any)({
+              language: "json",
+              style: materialDark,
+              customStyle: {
                 margin: 0,
                 padding: "1rem",
                 maxHeight: "calc(100vh - 200px)",
@@ -422,10 +426,9 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
                 background: "var(--color-bg-input)",
                 borderRadius: 0,
                 fontSize: "0.75rem",
-              }}
-            >
-              {JSON.stringify(agent, null, 2)}
-            </SyntaxHighlighter>
+              },
+              children: JSON.stringify(agent, null, 2),
+            })}
           </div>
         ) : (
           <>

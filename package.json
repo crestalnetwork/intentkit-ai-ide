@@ -10,14 +10,21 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@privy-io/react-auth": "2.20.0",
+    "@privy-io/wagmi": "^1.0.5",
+    "@solana/spl-token": "^0.4.9",
     "@supabase/supabase-js": "^2.52.0",
+    "@tanstack/react-query": "^5.28.6",
     "axios": "^1.6.2",
+    "mitt": "^3.0.1",
     "mixpanel-browser": "^2.67.0",
     "next": "14.0.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-syntax-highlighter": "^15.5.0",
-    "react-toastify": "^11.0.5"
+    "react-toastify": "^11.0.5",
+    "viem": "^2.21.58",
+    "wagmi": "^2.5.12"
   },
   "devDependencies": {
     "@types/node": "^20.10.4",
@@ -30,5 +37,6 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.3.6",
     "typescript": "^5.3.3"
-  }
+  },
+  "packageManager": "yarn@1.22.19+sha1.4ba7fc5c6e704fce2066ecbfb0b0d8976fe62447"
 }

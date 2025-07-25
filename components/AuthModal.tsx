@@ -3,6 +3,7 @@ import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { showToast } from "../lib/utils/toast";
 import logger from "../lib/utils/logger";
 import theme, { getButtonStyles } from "../lib/utils/theme";
+import { usePrivy } from "@privy-io/react-auth";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -28,6 +29,7 @@ const AuthModal: React.FC<AuthModalProps> = ({
   const [password, setPassword] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const { signIn, signUp } = useSupabaseAuth();
+  const { login } = usePrivy();
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +106,14 @@ const AuthModal: React.FC<AuthModalProps> = ({
     setPassword("");
     setLoading(false);
     onClose();
+  };
+
+  const loginWithPrivy = async () => {
+    try {
+      login();
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
 
   if (!isOpen) return null;
@@ -232,6 +242,16 @@ const AuthModal: React.FC<AuthModalProps> = ({
               : "Don't have an account? Sign up"}
           </button>
         </div>
+
+        <button
+          onClick={() => {
+            loginWithPrivy();
+          }}
+          disabled={loading}
+          className={`text-sm text-[${theme.colors.primary.main}] hover:text-[${theme.colors.primary.hover}] transition-colors disabled:opacity-50`}
+        >
+          Login with Privy
+        </button>
       </div>
     </div>
   );

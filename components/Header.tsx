@@ -29,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({
   baseUrl = "",
   onBaseUrlChange,
 }) => {
-  const { user: privyUser } = usePrivy();
+  const { user: privyUser, ready } = usePrivy();
 
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const { isAuthenticated, authStatus, handleStartLogin, handleDisconnect } =
@@ -177,7 +177,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="hidden sm:block">{rightActions}</div>
 
             {/* Authentication Status */}
-            {authStatus === AuthStatus.CONNECTING ? (
+            {!ready || authStatus === AuthStatus.CONNECTING ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-[#d0ff16]/30 border-t-[#d0ff16]"></div>
                 <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">

@@ -7,7 +7,8 @@ import ContactSupport from "./ContactSupport";
 import { AuthStatus, useAuth } from "@/context/AuthProvider";
 import { usePrivy } from "@privy-io/react-auth";
 import useWallet from "@/hooks/useWallet";
-import { shortenAddress } from "@/utils/address";
+import { isAddress, shortenAddress } from "@/utils/address";
+import { getPrivyAccountInfo } from "@/utils/common";
 
 interface HeaderProps {
   title: string;
@@ -68,10 +69,11 @@ const Header: React.FC<HeaderProps> = ({
   });
 
   const getUserDisplayName = () => {
-    if (!privyUser) return "";
+    if (!privyUser?.linkedAccounts) return "";
 
-    if (displayAddress) {
-      return shortenAddress(displayAddress);
+    const account = getPrivyAccountInfo(privyUser.linkedAccounts);
+    if (account) {
+      return isAddress(account) ? shortenAddress(account) : account;
     }
     return privyUser.id || "User";
   };

@@ -1,13 +1,15 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { DEFAULT_CONFIG, STORAGE_KEYS, API_ENDPOINTS } from './config';
-import { showToast } from './toast';
-import logger from './logger';
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
+import { DEFAULT_CONFIG, STORAGE_KEYS, API_ENDPOINTS } from "./config";
+import { showToast } from "./toast";
+import logger from "./logger";
+import { getAccessToken } from "@privy-io/react-auth";
+import mitt from 'mitt'
 
 // Agent Generation API types - Based on the correct API documentation
 export interface AgentGenerateRequest {
   prompt: string; // 10-1000 characters as per API spec
   existing_agent?: Agent | null; // Optional existing agent to update
-  user_id?: string; // Required for logging and rate limiting  
+  user_id?: string; // Required for logging and rate limiting
   project_id?: string | null; // Optional project ID for conversation history
 }
 
@@ -28,7 +30,7 @@ export interface Agent {
   external_website?: string;
   picture?: string;
   ticker?: string;
-  mode?: 'public' | 'private';
+  mode?: "public" | "private";
   fee_percentage?: number | string;
   purpose?: string;
   personality?: string;
@@ -42,7 +44,7 @@ export interface Agent {
   temperature?: number;
   frequency_penalty?: number;
   presence_penalty?: number;
-  short_term_memory_strategy?: 'trim' | 'summarize';
+  short_term_memory_strategy?: "trim" | "summarize";
   autonomous?: Array<{
     id: string;
     name: string;
@@ -59,7 +61,7 @@ export interface Agent {
     prompt: string;
   }>;
   skills?: Record<string, any>;
-  wallet_provider?: 'cdp';
+  wallet_provider?: "cdp";
   network_id?: string;
   cdp_network_id?: string;
   twitter_entrypoint_enabled?: boolean;
@@ -102,13 +104,21 @@ export interface ChatMessage {
   chat_id: string;
   user_id: string;
   author_id: string;
-  author_type: 'agent' | 'trigger' | 'skill' | 'telegram' | 'twitter' | 'web' | 'system' | 'api';
+  author_type:
+    | "agent"
+    | "trigger"
+    | "skill"
+    | "telegram"
+    | "twitter"
+    | "web"
+    | "system"
+    | "api";
   model?: string;
-  thread_type: 'agent';
+  thread_type: "agent";
   reply_to?: string;
   message: string;
   attachments?: Array<{
-    type: 'link' | 'image' | 'file';
+    type: "link" | "image" | "file";
     url: string;
   }>;
   skill_calls?: Array<{
@@ -140,7 +150,7 @@ export interface SendMessageRequest {
   search_mode?: boolean;
   super_mode?: boolean;
   attachments?: Array<{
-    type: 'link' | 'image' | 'file';
+    type: "link" | "image" | "file";
     url: string;
   }>;
 }
@@ -157,6 +167,8 @@ export interface HealthResponse {
   timestamp?: string;
 }
 
+export const ClientEventEmitter = mitt();
+
 class ApiClient {
   private client: AxiosInstance;
   private baseUrl: string;
@@ -164,31 +176,52 @@ class ApiClient {
   constructor() {
     // Get base URL from localStorage or use default
     this.baseUrl = this.getBaseUrl();
-    logger.info('ApiClient initialized', { baseUrl: this.baseUrl }, 'ApiClient.constructor');
-    
+    logger.info(
+      "ApiClient initialized",
+      { baseUrl: this.baseUrl },
+      "ApiClient.constructor"
+    );
+
     this.client = axios.create({
       baseURL: this.baseUrl,
       timeout: DEFAULT_CONFIG.TIMEOUT,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     // Add request interceptor for authentication
     this.client.interceptors.request.use(
-      (config) => {
-        const token = this.getAuthToken();
+      async (config) => {
+        const token = await this.getAuthToken();
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          logger.debug('Auth token added to request', { url: config.url }, 'ApiClient.requestInterceptor');
+          logger.debug(
+            "Auth token added to request",
+            { url: config.url },
+            "ApiClient.requestInterceptor"
+          );
         } else {
-          logger.warn('No auth token for request', { url: config.url }, 'ApiClient.requestInterceptor');
+          logger.warn(
+            "No auth token for request",
+            { url: config.url },
+            "ApiClient.requestInterceptor"
+          );
         }
-        logger.apiCall(config.method?.toUpperCase() || 'UNKNOWN', config.url || '', config.data, 'ApiClient');
+        logger.apiCall(
+          config.method?.toUpperCase() || "UNKNOWN",
+          config.url || "",
+          config.data,
+          "ApiClient"
+        );
         return config;
       },
       (error) => {
-        logger.error('Request interceptor error', error, 'ApiClient.requestInterceptor');
+        logger.error(
+          "Request interceptor error",
+          error,
+          "ApiClient.requestInterceptor"
+        );
         return Promise.reject(error);
       }
     );
@@ -197,34 +230,45 @@ class ApiClient {
     this.client.interceptors.response.use(
       (response) => {
         logger.apiResponse(
-          response.config.method?.toUpperCase() || 'UNKNOWN', 
-          response.config.url || '', 
-          response.status, 
-          response.data, 
-          'ApiClient.responseInterceptor'
+          response.config.method?.toUpperCase() || "UNKNOWN",
+          response.config.url || "",
+          response.status,
+          response.data,
+          "ApiClient.responseInterceptor"
         );
         return response;
       },
       (error) => {
         const status = error.response?.status;
         const url = error.config?.url;
-        logger.error(`API Error ${status}`, { url, error: error.message, response: error.response?.data }, 'ApiClient.responseInterceptor');
-        
+        logger.error(
+          `API Error ${status}`,
+          { url, error: error.message, response: error.response?.data },
+          "ApiClient.responseInterceptor"
+        );
+
         if (status === 401) {
           // Clear invalid token
-          localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
-          localStorage.removeItem(STORAGE_KEYS.USER_SESSION);
-          logger.auth('Token expired, cleared auth data', { url });
-          showToast.error('Authentication expired. Please sign in again.');
+          // localStorage.removeItem(STORAGE_KEYS.AUTH_TOKEN);
+          // localStorage.removeItem(STORAGE_KEYS.USER_SESSION);
+          ClientEventEmitter.emit('DISCONNECT')
+          logger.auth("Token expired, cleared auth data", { url });
+          showToast.error("Authentication expired. Please sign in again.");
         } else if (status === 402) {
           // Payment required - credits issue
-          showToast.error('Insufficient credits. Copy support@crestal.network from your profile menu for billing assistance.');
+          showToast.error(
+            "Insufficient credits. Copy support@crestal.network from your profile menu for billing assistance."
+          );
         } else if (status === 429) {
           // Rate limited / quota exceeded
-          showToast.error('Rate limit exceeded. Copy support@crestal.network from your profile menu if this persists.');
+          showToast.error(
+            "Rate limit exceeded. Copy support@crestal.network from your profile menu if this persists."
+          );
         } else if (status >= 500) {
           // Server error
-          showToast.error('Server error occurred. Copy support@crestal.network from your profile menu if this continues.');
+          showToast.error(
+            "Server error occurred. Copy support@crestal.network from your profile menu if this continues."
+          );
         }
         return Promise.reject(error);
       }
@@ -232,15 +276,17 @@ class ApiClient {
   }
 
   private getBaseUrl(): string {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEYS.BASE_URL) || DEFAULT_CONFIG.BASE_URL;
+    if (typeof window !== "undefined") {
+      return (
+        localStorage.getItem(STORAGE_KEYS.BASE_URL) || DEFAULT_CONFIG.BASE_URL
+      );
     }
     return DEFAULT_CONFIG.BASE_URL;
   }
 
-  private getAuthToken(): string | null {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN);
+  private async getAuthToken(): Promise<string | null> {
+    if (typeof window !== "undefined") {
+      return await getAccessToken();
     }
     return null;
   }
@@ -254,7 +300,9 @@ class ApiClient {
 
   // Health check
   public async health(): Promise<HealthResponse> {
-    const response = await this.client.get<HealthResponse>(API_ENDPOINTS.HEALTH);
+    const response = await this.client.get<HealthResponse>(
+      API_ENDPOINTS.HEALTH
+    );
     return response.data;
   }
 
@@ -265,7 +313,7 @@ class ApiClient {
   }
 
   public async getAgents(params?: {
-    sort?: 'created_at desc' | 'created_at asc' | 'updated_at desc';
+    sort?: "created_at desc" | "created_at asc" | "updated_at desc";
     cursor?: string;
     limit?: number;
   }): Promise<PaginatedResponse<Agent>> {
@@ -277,11 +325,16 @@ class ApiClient {
   }
 
   public async getAgent(agentId: string): Promise<Agent> {
-    const response = await this.client.get<Agent>(API_ENDPOINTS.AGENT_BY_ID(agentId));
+    const response = await this.client.get<Agent>(
+      API_ENDPOINTS.AGENT_BY_ID(agentId)
+    );
     return response.data;
   }
 
-  public async updateAgent(agentId: string, agent: Partial<Agent>): Promise<Agent> {
+  public async updateAgent(
+    agentId: string,
+    agent: Partial<Agent>
+  ): Promise<Agent> {
     const response = await this.client.patch<Agent>(
       API_ENDPOINTS.AGENT_BY_ID(agentId),
       agent
@@ -293,35 +346,49 @@ class ApiClient {
     await this.client.post(API_ENDPOINTS.AGENT_VALIDATE, agent);
   }
 
-  public async generateAgent(request: AgentGenerateRequest): Promise<AgentGenerateResponse> {
+  public async generateAgent(
+    request: AgentGenerateRequest
+  ): Promise<AgentGenerateResponse> {
     // Validate prompt length as per API spec (10-1000 characters)
-    if (!request.prompt || request.prompt.length < 10 || request.prompt.length > 1000) {
-      throw new Error('Prompt must be between 10 and 1000 characters');
+    if (
+      !request.prompt ||
+      request.prompt.length < 10 ||
+      request.prompt.length > 1000
+    ) {
+      throw new Error("Prompt must be between 10 and 1000 characters");
     }
 
     // Ensure user_id is provided as it's required
     if (!request.user_id) {
-      throw new Error('user_id is required for agent generation');
+      throw new Error("user_id is required for agent generation");
     }
 
-    logger.info('Generating agent via API', {
-      promptLength: request.prompt.length,
-      hasExistingAgent: !!request.existing_agent,
-      userId: request.user_id,
-      projectId: request.project_id
-    }, 'ApiClient.generateAgent');
+    logger.info(
+      "Generating agent via API",
+      {
+        promptLength: request.prompt.length,
+        hasExistingAgent: !!request.existing_agent,
+        userId: request.user_id,
+        projectId: request.project_id,
+      },
+      "ApiClient.generateAgent"
+    );
 
     const response = await this.client.post<AgentGenerateResponse>(
       API_ENDPOINTS.AGENT_GENERATE,
       request
     );
 
-    logger.info('Agent generation successful', {
-      agentName: response.data.agent.name,
-      projectId: response.data.project_id,
-      activatedSkills: response.data.activated_skills?.length || 0,
-      autonomousTasks: response.data.autonomous_tasks?.length || 0
-    }, 'ApiClient.generateAgent');
+    logger.info(
+      "Agent generation successful",
+      {
+        agentName: response.data.agent.name,
+        projectId: response.data.project_id,
+        activatedSkills: response.data.activated_skills?.length || 0,
+        autonomousTasks: response.data.autonomous_tasks?.length || 0,
+      },
+      "ApiClient.generateAgent"
+    );
 
     return response.data;
   }
@@ -339,7 +406,9 @@ class ApiClient {
   }
 
   public async getUserAgent(agentId: string): Promise<Agent> {
-    const response = await this.client.get<Agent>(API_ENDPOINTS.USER_AGENT_BY_ID(agentId));
+    const response = await this.client.get<Agent>(
+      API_ENDPOINTS.USER_AGENT_BY_ID(agentId)
+    );
     return response.data;
   }
 
@@ -359,16 +428,34 @@ class ApiClient {
     return response.data;
   }
 
-  public async getChatThread(agentId: string, chatId: string): Promise<ChatThread> {
-    logger.apiCall('GET', API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId), { agentId, chatId }, 'ApiClient.getChatThread');
+  public async getChatThread(
+    agentId: string,
+    chatId: string
+  ): Promise<ChatThread> {
+    logger.apiCall(
+      "GET",
+      API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId),
+      { agentId, chatId },
+      "ApiClient.getChatThread"
+    );
     try {
       const response = await this.client.get<ChatThread>(
         API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId)
       );
-      logger.apiResponse('GET', API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId), response.status, response.data, 'ApiClient.getChatThread');
+      logger.apiResponse(
+        "GET",
+        API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId),
+        response.status,
+        response.data,
+        "ApiClient.getChatThread"
+      );
       return response.data;
     } catch (error: any) {
-      logger.error('Failed to get chat thread', { agentId, chatId, error: error.message }, 'ApiClient.getChatThread');
+      logger.error(
+        "Failed to get chat thread",
+        { agentId, chatId, error: error.message },
+        "ApiClient.getChatThread"
+      );
       throw error;
     }
   }
@@ -385,7 +472,10 @@ class ApiClient {
     return response.data;
   }
 
-  public async deleteChatThread(agentId: string, chatId: string): Promise<void> {
+  public async deleteChatThread(
+    agentId: string,
+    chatId: string
+  ): Promise<void> {
     await this.client.delete(API_ENDPOINTS.AGENT_CHAT_BY_ID(agentId, chatId));
   }
 
@@ -416,14 +506,22 @@ class ApiClient {
     return response.data;
   }
 
-  public async retryMessage(agentId: string, chatId: string, messageId: string): Promise<ChatMessage[]> {
+  public async retryMessage(
+    agentId: string,
+    chatId: string,
+    messageId: string
+  ): Promise<ChatMessage[]> {
     const response = await this.client.post<ChatMessage[]>(
       API_ENDPOINTS.AGENT_CHAT_MESSAGE_RETRY(agentId, chatId, messageId)
     );
     return response.data;
   }
 
-  public async getMessage(agentId: string, chatId: string, messageId: string): Promise<ChatMessage> {
+  public async getMessage(
+    agentId: string,
+    chatId: string,
+    messageId: string
+  ): Promise<ChatMessage> {
     const response = await this.client.get<ChatMessage>(
       API_ENDPOINTS.AGENT_CHAT_MESSAGE_BY_ID(agentId, chatId, messageId)
     );
@@ -447,19 +545,22 @@ class ApiClient {
   }
 
   // Server status check for compatibility
-  public async checkServerStatus(): Promise<{ status: string; agents_available: boolean }> {
+  public async checkServerStatus(): Promise<{
+    status: string;
+    agents_available: boolean;
+  }> {
     try {
       const healthResponse = await this.health();
-      
+
       // Try to get user agents to check if the API is working
       const agentsResponse = await this.getUserAgents({ limit: 1 });
-      
+
       return {
-        status: 'connected',
-        agents_available: agentsResponse.data.length > 0
+        status: "connected",
+        agents_available: agentsResponse.data.length > 0,
       };
     } catch (error) {
-      throw new Error('Failed to connect to Nation API');
+      throw new Error("Failed to connect to Nation API");
     }
   }
 }
@@ -468,4 +569,4 @@ class ApiClient {
 export const apiClient = new ApiClient();
 
 // Export for use in components
-export default apiClient; 
+export default apiClient;

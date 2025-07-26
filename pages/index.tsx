@@ -11,11 +11,11 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Agent, ChatThread } from "../lib/utils/apiClient";
 import apiClient from "../lib/utils/apiClient";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
 import logger from "../lib/utils/logger";
 import theme from "../lib/utils/theme";
 import AuthModal from "../components/AuthModal";
+import { useAuth } from "@/context/AuthProvider";
 
 const Home: React.FC = (): JSX.Element => {
   const [baseUrl, setBaseUrl] = useState<string>("");
@@ -26,10 +26,7 @@ const Home: React.FC = (): JSX.Element => {
   const [conversationRefreshKey, setConversationRefreshKey] =
     useState<number>(0);
 
-  // Auth modal states
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const { isAuthenticated, user, signIn, signUp } = useSupabaseAuth();
+  const { isAuthenticated, handleStartLogin } = useAuth();
 
   logger.component("mounted", "Home");
 
@@ -200,15 +197,6 @@ const Home: React.FC = (): JSX.Element => {
     showToast.info("API Key management coming soon!");
   };
 
-  const handleCloseAuthModal = () => {
-    logger.debug(
-      "Auth modal closed from home",
-      {},
-      "Home.handleCloseAuthModal"
-    );
-    setShowAuthModal(false);
-  };
-
   // Prepare right actions for the header
   const rightActions = (
     <>
@@ -313,7 +301,7 @@ const Home: React.FC = (): JSX.Element => {
                   </p>
                   {!isAuthenticated && (
                     <button
-                      onClick={() => setShowAuthModal(true)}
+                      onClick={() => handleStartLogin()}
                       className={`mt-4 inline-flex items-center px-4 py-2 bg-[${theme.colors.primary.main}] text-black text-sm rounded-lg hover:bg-[${theme.colors.primary.hover}] transition-colors`}
                     >
                       Sign In & Get Started
@@ -334,9 +322,6 @@ const Home: React.FC = (): JSX.Element => {
         onClose={() => setShowAgentSelector(false)}
         isOpen={showAgentSelector}
       />
-
-      {/* Auth Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
 
       {/* Footer */}
       <Footer baseUrl={baseUrl} showConnectionStatus={true} />

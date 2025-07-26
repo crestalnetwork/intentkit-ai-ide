@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { showToast } from "../lib/utils/toast";
 import logger from "../lib/utils/logger";
-import AuthModal from "./AuthModal";
 import theme from "../lib/utils/theme";
-import Settings from "./Settings";
 import ContactSupport from "./ContactSupport";
+import { AuthStatus, useAuth } from "@/context/AuthProvider";
+import { usePrivy } from "@privy-io/react-auth";
+import useWallet from "@/hooks/useWallet";
+import { shortenAddress } from "@/utils/address";
 
 interface HeaderProps {
   title: string;
@@ -28,17 +29,12 @@ const Header: React.FC<HeaderProps> = ({
   baseUrl = "",
   onBaseUrlChange,
 }) => {
-  const {
-    user,
-    isAuthenticated,
-    isLoading: authLoading,
-    signIn,
-    signUp,
-    signOut,
-  } = useSupabaseAuth();
+  const { user: privyUser, ready } = usePrivy();
 
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const { isAuthenticated, authStatus, handleStartLogin, handleDisconnect } =
+    useAuth();
+  const { displayAddress } = useWallet();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -65,46 +61,50 @@ const Header: React.FC<HeaderProps> = ({
   logger.component("rendered", "Header", {
     title,
     isAuthenticated,
-    authLoading,
-    userEmail: user?.email,
+    authStatus,
+    userEmail: privyUser?.email,
     showBaseUrl,
     baseUrl,
   });
 
   const getUserDisplayName = () => {
-    if (!user) return "";
-    return user.email || user.user_metadata?.name || "User";
-  };
+    if (!privyUser) return "";
 
-  const handleSignOut = async () => {
-    logger.info(
-      "Sign out initiated from header",
-      { userEmail: user?.email },
-      "Header.handleSignOut"
-    );
-    try {
-      await signOut();
-      logger.info("Sign out completed from header", {}, "Header.handleSignOut");
-      showToast.success("Signed out successfully");
-    } catch (error: any) {
-      logger.error(
-        "Sign out error from header",
-        { error: error.message },
-        "Header.handleSignOut"
-      );
-      showToast.error("Error signing out");
+    if (displayAddress) {
+      return shortenAddress(displayAddress);
     }
+    return privyUser.id || "User";
   };
 
-  const handleShowAuthModal = () => {
-    logger.debug("Auth modal opened", {}, "Header.handleShowAuthModal");
-    setShowAuthModal(true);
-  };
+  // const handleSignOut = async () => {
+  //   logger.info(
+  //     "Sign out initiated from header",
+  //     { userEmail: user?.email },
+  //     "Header.handleSignOut"
+  //   );
+  //   try {
+  //     await signOut();
+  //     logger.info("Sign out completed from header", {}, "Header.handleSignOut");
+  //     showToast.success("Signed out successfully");
+  //   } catch (error: any) {
+  //     logger.error(
+  //       "Sign out error from header",
+  //       { error: error.message },
+  //       "Header.handleSignOut"
+  //     );
+  //     showToast.error("Error signing out");
+  //   }
+  // };
 
-  const handleCloseAuthModal = () => {
-    logger.debug("Auth modal closed", {}, "Header.handleCloseAuthModal");
-    setShowAuthModal(false);
-  };
+  // const handleShowAuthModal = () => {
+  //   logger.debug("Auth modal opened", {}, "Header.handleShowAuthModal");
+  //   setShowAuthModal(true);
+  // };
+
+  // const handleCloseAuthModal = () => {
+  //   logger.debug("Auth modal closed", {}, "Header.handleCloseAuthModal");
+  //   setShowAuthModal(false);
+  // };
 
   const handleGetApiKey = () => {
     logger.info("API key button clicked", {}, "Header.handleGetApiKey");
@@ -115,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({
   const handleProfileSignOut = async () => {
     logger.info("Profile sign out clicked", {}, "Header.handleProfileSignOut");
     try {
-      await signOut();
+      await handleDisconnect();
       setShowProfileDropdown(false);
     } catch (error: any) {
       logger.error(
@@ -177,7 +177,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="hidden sm:block">{rightActions}</div>
 
             {/* Authentication Status */}
-            {authLoading ? (
+            {!ready || authStatus === AuthStatus.CONNECTING ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-2 border-[#d0ff16]/30 border-t-[#d0ff16]"></div>
                 <span className="text-xs sm:text-sm text-gray-400 hidden sm:inline">
@@ -340,7 +340,7 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             ) : (
               <button
-                onClick={handleShowAuthModal}
+                onClick={() => handleStartLogin()}
                 className="inline-flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm py-1.5 sm:py-2.5 px-3 sm:px-6 bg-[#d0ff16] text-black font-semibold rounded-lg hover:bg-[#d0ff16]/90 hover:shadow-lg hover:shadow-[#d0ff16]/20 transition-all duration-200"
               >
                 <svg
@@ -365,9 +365,6 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
-
-      {/* Authentication Modal */}
-      <AuthModal isOpen={showAuthModal} onClose={handleCloseAuthModal} />
     </>
   );
 };

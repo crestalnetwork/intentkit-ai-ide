@@ -2,10 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import { AgentCreatorProps, ConversationMessage } from "../lib/types";
 import { showToast } from "../lib/utils/toast";
 import { templateToAgentConfig } from "../lib/utils/templateUtils";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import apiClient, { Agent, AgentGenerateRequest } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
 import SkillsPanel from "./SkillsPanel";
+import { useAuth } from "@/context/AuthProvider";
 
 const AgentCreator: React.FC<AgentCreatorProps> = ({
   baseUrl,
@@ -23,7 +23,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { user, isAuthenticated } = useSupabaseAuth();
+  const { user, isAuthenticated } = useAuth();
 
   logger.component("mounted", "AgentCreator", {
     baseUrl,

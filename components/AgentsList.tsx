@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { AgentsListProps, Agent } from "../lib/types";
 import apiClient from "../lib/utils/apiClient";
-import { useSupabaseAuth } from "../hooks/useSupabaseAuth";
 import { showToast } from "../lib/utils/toast";
 import logger from "../lib/utils/logger";
 import theme from "../lib/utils/theme";
+import { useAuth } from "@/context/AuthProvider";
 
 const AgentsList: React.FC<AgentsListProps> = ({
   baseUrl,
@@ -15,7 +15,7 @@ const AgentsList: React.FC<AgentsListProps> = ({
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const { isAuthenticated } = useSupabaseAuth();
+  const { isAuthenticated } = useAuth();
 
   logger.component("mounted", "AgentsList", {
     baseUrl,

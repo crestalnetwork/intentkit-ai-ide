@@ -4,7 +4,6 @@ import Link from "next/link";
 import { showToast } from "../lib/utils/toast";
 import ChatInterface from "../components/ChatInterface";
 import ConversationsList from "../components/ConversationsList";
-import AgentSelector from "../components/AgentSelector";
 import AgentDetail from "../components/AgentDetail";
 import Settings from "../components/Settings";
 import Header from "../components/Header";
@@ -22,7 +21,6 @@ const Home: React.FC = (): JSX.Element => {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [viewMode, setViewMode] = useState<"chat" | "details">("chat");
-  const [showAgentSelector, setShowAgentSelector] = useState<boolean>(false);
   const [conversationRefreshKey, setConversationRefreshKey] =
     useState<number>(0);
 
@@ -47,6 +45,41 @@ const Home: React.FC = (): JSX.Element => {
       apiClient.updateBaseUrl(storedUrl || defaultUrl);
     }
   }, []);
+
+  // Auto-load first available agent on authentication
+  useEffect(() => {
+    if (isAuthenticated && !selectedAgent) {
+      loadFirstAvailableAgent();
+    }
+  }, [isAuthenticated]);
+
+  const loadFirstAvailableAgent = async () => {
+    try {
+      logger.info(
+        "Loading first available agent",
+        {},
+        "Home.loadFirstAvailableAgent"
+      );
+
+      const response = await apiClient.getUserAgents({ limit: 1 });
+      if (response.data.length > 0) {
+        const firstAgent = response.data[0];
+        logger.info(
+          "Setting first available agent",
+          { agentId: firstAgent.id, agentName: firstAgent.name },
+          "Home.loadFirstAvailableAgent"
+        );
+        setSelectedAgent(firstAgent);
+      }
+    } catch (error: any) {
+      logger.error(
+        "Failed to load first available agent",
+        { error: error.message },
+        "Home.loadFirstAvailableAgent"
+      );
+      // Don't show error to user as this is optional
+    }
+  };
 
   // Refresh the selected agent data
   const refreshSelectedAgent = useCallback(async () => {
@@ -93,6 +126,8 @@ const Home: React.FC = (): JSX.Element => {
         );
         // When agents list is refreshed, also refresh the selected agent
         setTimeout(refreshSelectedAgent, 100);
+        // Also refresh the conversation list
+        setConversationRefreshKey((prev) => prev + 1);
       };
 
       window.addEventListener(
@@ -148,7 +183,8 @@ const Home: React.FC = (): JSX.Element => {
       setSelectedAgent(agent);
     }
 
-    setSelectedThread(null); // Clear current thread when switching agents
+    // Clear current thread when switching agents to avoid confusion
+    setSelectedThread(null);
     setViewMode("chat");
   };
 
@@ -250,8 +286,7 @@ const Home: React.FC = (): JSX.Element => {
                 selectedAgent={selectedAgent}
                 selectedThreadId={selectedThread?.id}
                 onThreadSelect={handleThreadSelect}
-                onNewChat={handleNewChat}
-                onAgentSelect={() => setShowAgentSelector(true)}
+                onAgentSelect={handleAgentSelect} // Now passes agent directly
                 refreshKey={conversationRefreshKey}
               />
             </div>
@@ -292,12 +327,14 @@ const Home: React.FC = (): JSX.Element => {
                     />
                   </svg>
                   <h3 className="mt-6 text-lg font-medium text-[#c9d1d9]">
-                    Select an Agent to Start
+                    {isAuthenticated
+                      ? "Select an Agent to Start"
+                      : "Welcome to IntentKit"}
                   </h3>
                   <p className="mt-3 max-w-md mx-auto text-base">
                     {isAuthenticated
-                      ? "Choose an agent from the list to start chatting."
-                      : "Please sign in to view and chat with agents."}
+                      ? "Your conversations are loading. Select an agent from the sidebar to start chatting."
+                      : "Please sign in to view and chat with your agents."}
                   </p>
                   {!isAuthenticated && (
                     <button
@@ -313,15 +350,6 @@ const Home: React.FC = (): JSX.Element => {
           </div>
         </div>
       </main>
-
-      {/* Agent Selector Modal */}
-      <AgentSelector
-        baseUrl={baseUrl}
-        selectedAgentId={selectedAgent?.id}
-        onAgentSelect={handleAgentSelect}
-        onClose={() => setShowAgentSelector(false)}
-        isOpen={showAgentSelector}
-      />
 
       {/* Footer */}
       <Footer baseUrl={baseUrl} showConnectionStatus={true} />

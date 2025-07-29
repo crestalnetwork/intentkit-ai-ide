@@ -71,6 +71,52 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
     }
   );
 
+  // Helper function to extract URL from markdown link format
+  const extractUrlFromMarkdown = (markdownLink: string) => {
+    const match = markdownLink.match(/\[([^\]]+)\]\(([^)]+)\)/);
+    return match ? { text: match[1], url: match[2] } : null;
+  };
+
+  // Helper function to check if skill requires owner API key
+  const requiresOwnerApiKey = (skill: any) => {
+    return skill.properties?.api_key_provider?.enum?.includes("agent_owner");
+  };
+
+  // Helper function to get API key URL for owner-provided keys
+  const getApiKeyUrl = (skill: any) => {
+    // Debug logging for troubleshooting
+    if (process.env.NODE_ENV === "development" && requiresOwnerApiKey(skill)) {
+      console.log("Skill with API key requirement:", {
+        title: skill.title,
+        hasIf: !!skill.if,
+        hasThen: !!skill.then,
+        ifCondition: skill.if?.properties?.api_key_provider?.const,
+        thenApiKey: skill.then?.properties?.api_key,
+      });
+    }
+
+    // The api_key property with x-link is inside the conditional "then" block
+    // when api_key_provider is "agent_owner"
+    if (
+      skill.if &&
+      skill.if.properties?.api_key_provider?.const === "agent_owner" &&
+      skill.then
+    ) {
+      const apiKeyProperty = skill.then.properties?.api_key;
+      if (apiKeyProperty && apiKeyProperty["x-link"]) {
+        return extractUrlFromMarkdown(apiKeyProperty["x-link"]);
+      }
+    }
+
+    // Also check direct properties structure for fallback
+    const apiKeyProperty = skill.properties?.api_key;
+    if (apiKeyProperty && apiKeyProperty["x-link"]) {
+      return extractUrlFromMarkdown(apiKeyProperty["x-link"]);
+    }
+
+    return null;
+  };
+
   const generateSkillConfig = (skillName: string, skill: SkillConfig) => {
     return {
       [skillName]: {
@@ -217,9 +263,31 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="mb-2">
-                      <h3 className="font-semibold text-[var(--color-text-primary)] mb-2">
-                        {skill.title || skillName}
-                      </h3>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <h3 className="font-semibold text-[var(--color-text-primary)]">
+                          {skill.title || skillName}
+                        </h3>
+                        {requiresOwnerApiKey(skill) && (
+                          <div className="flex items-center space-x-1 px-2 py-1 bg-[var(--color-neon-orange-subtle)] border border-[var(--color-neon-orange-border)] rounded-full">
+                            <svg
+                              className="w-3 h-3 text-[var(--color-neon-orange)]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 12H9l-1 1-1 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2a1 1 0 011-1h2l4.586-4.586A6 6 0 0121 9z"
+                              />
+                            </svg>
+                            <span className="text-xs font-medium text-[var(--color-neon-orange)]">
+                              API Key
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-3">
@@ -326,6 +394,63 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                               </p>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* API Key Information */}
+                    {requiresOwnerApiKey(skill) && (
+                      <div className="bg-[var(--color-neon-orange-subtle)] border border-[var(--color-neon-orange-border)] rounded-lg p-4">
+                        <div className="flex items-start space-x-3">
+                          <div className="flex-shrink-0">
+                            <svg
+                              className="w-5 h-5 text-[var(--color-neon-orange)]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 12H9l-1 1-1 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1v-2a1 1 0 011-1h2l4.586-4.586A6 6 0 0121 9z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-[var(--color-text-primary)] mb-2">
+                              🔑 API Key Required
+                            </h4>
+                            <p className="text-sm text-[var(--color-text-secondary)] leading-relaxed mb-3">
+                              This skill requires an API key that you need to
+                              obtain yourself. You'll need to sign up with the
+                              service provider to get access.
+                            </p>
+                            {getApiKeyUrl(skill) && (
+                              <a
+                                href={getApiKeyUrl(skill)!.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center space-x-2 px-4 py-2 bg-[var(--color-neon-cyan)] text-black rounded-lg hover:bg-[var(--color-neon-cyan-bright)] transition-all duration-200 font-medium text-sm shadow-lg hover:shadow-xl hover:shadow-[var(--color-neon-cyan-glow)] transform hover:scale-[1.02]"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                                  />
+                                </svg>
+                                <span>{getApiKeyUrl(skill)!.text} ↗</span>
+                              </a>
+                            )}
+                          </div>
                         </div>
                       </div>
                     )}

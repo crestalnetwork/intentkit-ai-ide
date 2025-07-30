@@ -1,15 +1,17 @@
 // API Configuration
 export const LOCAL_BASE_URL = "http://127.0.0.1:8000";
+export const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 // Default configuration
 export const DEFAULT_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  BASE_URL: DEFAULT_BASE_URL,
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
   IS_DEV:
-    process.env.NODE_ENV === "development" ||
-    process.env.NEXT_PUBLIC_APP_ENV === "dev",
+    process.env.NODE_ENV 
+    !== "production" &&
+    process.env.NEXT_PUBLIC_APP_ENV !== "prod",
 };
 
 // Storage keys for localStorage

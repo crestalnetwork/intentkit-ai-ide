@@ -1,6 +1,6 @@
 // API Configuration
-export const DEFAULT_BASE_URL = "https://sandbox.service.crestal.dev";
 export const LOCAL_BASE_URL = "http://127.0.0.1:8000";
+export const DEFAULT_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? '';
 
 // Default configuration
 export const DEFAULT_CONFIG = {
@@ -8,7 +8,10 @@ export const DEFAULT_CONFIG = {
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
-  IS_DEV: process.env.NODE_ENV === 'development' || process.env.NEXT_PUBLIC_IS_DEV === 'true',
+  IS_DEV:
+    process.env.NODE_ENV 
+    !== "production" &&
+    process.env.NEXT_PUBLIC_APP_ENV !== "prod",
 };
 
 // Storage keys for localStorage
@@ -40,14 +43,25 @@ export const API_ENDPOINTS = {
   AGENT_VALIDATE: "/agent/validate",
   AGENT_GENERATE: "/generator/agent/generate",
   AGENT_CHATS: (agentId: string) => `/agents/${agentId}/chats`,
-  AGENT_CHAT_BY_ID: (agentId: string, chatId: string) => `/agents/${agentId}/chats/${chatId}`,
-  AGENT_CHAT_MESSAGES: (agentId: string, chatId: string) => `/agents/${agentId}/chats/${chatId}/messages`,
-  AGENT_CHAT_MESSAGE_BY_ID: (agentId: string, chatId: string, messageId: string) => `/agents/${agentId}/chats/${chatId}/messages/${messageId}`,
-  AGENT_CHAT_MESSAGE_RETRY: (agentId: string, chatId: string, messageId: string) => `/agents/${agentId}/chats/${chatId}/messages/${messageId}/retry`,
+  AGENT_CHAT_BY_ID: (agentId: string, chatId: string) =>
+    `/agents/${agentId}/chats/${chatId}`,
+  AGENT_CHAT_MESSAGES: (agentId: string, chatId: string) =>
+    `/agents/${agentId}/chats/${chatId}/messages`,
+  AGENT_CHAT_MESSAGE_BY_ID: (
+    agentId: string,
+    chatId: string,
+    messageId: string
+  ) => `/agents/${agentId}/chats/${chatId}/messages/${messageId}`,
+  AGENT_CHAT_MESSAGE_RETRY: (
+    agentId: string,
+    chatId: string,
+    messageId: string
+  ) => `/agents/${agentId}/chats/${chatId}/messages/${messageId}/retry`,
   USER_AGENTS: "/user/agents",
   USER_AGENT_BY_ID: (id: string) => `/user/agents/${id}`,
   SKILLS: "/skills",
   LLMS: "/llms",
   AGENT_SCHEMA: "/agent-schema",
-  SKILL_ICON: (skill: string, icon: string, ext: string) => `/metadata/skills/${skill}/${icon}.${ext}`,
-}; 
+  SKILL_ICON: (skill: string, icon: string, ext: string) =>
+    `/metadata/skills/${skill}/${icon}.${ext}`,
+};

@@ -27,12 +27,12 @@
 The application includes a comprehensive logging system controlled by the `IS_DEV` flag:
 
 #### Development Mode (Logging Enabled)
-- Set `NEXT_PUBLIC_IS_DEV=true` or `NODE_ENV=development`
+- Set `NEXT_PUBLIC_APP_ENV=dev` or `NODE_ENV=development`
 - All logs displayed in browser console
 - Includes API calls, authentication events, component lifecycle, and errors
 
 #### Production Mode (Logging Disabled)
-- Set `NEXT_PUBLIC_IS_DEV=false` or `NODE_ENV=production`
+- Set `NEXT_PUBLIC_APP_ENV=prod` or `NODE_ENV=production`
 - All logging disabled for performance and security
 
 #### Logger Usage

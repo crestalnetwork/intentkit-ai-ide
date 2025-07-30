@@ -258,7 +258,7 @@ const Home: React.FC = (): JSX.Element => {
       className={`min-h-screen bg-[${theme.colors.background.primary}] flex flex-col h-screen`}
     >
       <Head>
-        <title>IntentKit.ai (IntentKit)</title>
+        <title>IntentKit AI</title>
         <meta
           name="description"
           content="Launch and Deploy AI Agents Instantly — No Code Required"
@@ -268,7 +268,7 @@ const Home: React.FC = (): JSX.Element => {
 
       {/* Header */}
       <Header
-        title="IntentKit.ai"
+        title="IntentKit AI"
         rightActions={rightActions}
         showBaseUrl={false}
         baseUrl={baseUrl}

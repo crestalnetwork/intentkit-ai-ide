@@ -18,11 +18,11 @@ const ContactSupport: React.FC<ContactSupportProps> = ({
   const getSubject = () => {
     switch (reason) {
       case "error":
-        return "System Error - IntentKit.ai";
+        return "System Error - IntentKit AI";
       case "credits":
-        return "Credits Issue - IntentKit.ai";
+        return "Credits Issue - IntentKit AI";
       default:
-        return "Support Request - IntentKit.ai";
+        return "Support Request - IntentKit AI";
     }
   };
 

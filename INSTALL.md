@@ -23,7 +23,7 @@ NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 # Development Configuration (Optional)
-NEXT_PUBLIC_IS_DEV=true  # Enable development logging
+NEXT_PUBLIC_APP_ENV=dev  # Enable development logging
 NODE_ENV=development     # Automatically enables logging
 ```
 
@@ -58,7 +58,7 @@ For production deployment:
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=your_production_supabase_url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_production_supabase_anon_key
-   NEXT_PUBLIC_IS_DEV=false  # Disable logging
+   NEXT_PUBLIC_APP_ENV=prod  # Disable logging
    NODE_ENV=production
    ```
 

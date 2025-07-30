@@ -1,20 +1,15 @@
 // API Configuration
-export const HARDCODE_BASE_URL =
-  process.env.NODE_ENV === "development" ||
-  process.env.NEXT_PUBLIC_IS_DEV === "true"
-    ? "https://sandbox.service.crestal.dev"
-    : "https://intentkitai.service.crestal.network";
 export const LOCAL_BASE_URL = "http://127.0.0.1:8000";
 
 // Default configuration
 export const DEFAULT_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL ?? HARDCODE_BASE_URL,
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
   TIMEOUT: 30000, // 30 seconds
   RETRY_ATTEMPTS: 3,
   RETRY_DELAY: 1000, // 1 second
   IS_DEV:
     process.env.NODE_ENV === "development" ||
-    process.env.NEXT_PUBLIC_IS_DEV === "true",
+    process.env.NEXT_PUBLIC_APP_ENV === "dev",
 };
 
 // Storage keys for localStorage

@@ -430,7 +430,7 @@ const Quick: React.FC = () => {
   return (
     <div className="h-screen bg-[var(--color-bg-primary)] flex flex-col overflow-hidden">
       <Head>
-        <title>Quick Agent Creator - IntentKit.ai (IntentKit)</title>
+        <title>Quick Agent Creator - IntentKit AI</title>
         <meta
           name="description"
           content="Create and chat with AI agents instantly using pre-built templates"

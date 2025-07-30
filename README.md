@@ -1,8 +1,8 @@
-# **IntentKit.ai**
+# **IntentKit AI IDE**
 
 **Launch and Deploy AI Agents Instantly — No Code Required**
 
-**IntentKit.ai** is the fastest way to turn your ideas into working AI agents. Whether you're building a product, automating a workflow, or experimenting with autonomous agents, IntentKit makes it simple: just describe what your agent should do, pick the right tools from our growing skill library, and you're done.
+**IntentKit AI** is the fastest way to turn your ideas into working AI agents. Whether you're building a product, automating a workflow, or experimenting with autonomous agents, IntentKit makes it simple: just describe what your agent should do, pick the right tools from our growing skill library, and you're done.
 
 Your agent is hosted and live in seconds — no code, no config, no headaches.
 
@@ -15,7 +15,7 @@ Test it in real time through a chat interface, then plug it into your app with i
 📦 **Ready-to-use SDKs** — Integrate into your app instantly  
 🧪 **Instant testing** — Chat with your agent in real-time  
 
-**Get started:** [intentkit.ai](https://intentkit.ai/)
+**Get started:** [IntentKit AI](https://intentkit.ai/)
 
 ---
 

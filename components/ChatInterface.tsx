@@ -6,6 +6,7 @@ import apiClient, {
   SendMessageRequest,
 } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
+import { showToast } from "../lib/utils/toast";
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   baseUrl,
@@ -366,6 +367,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
+  const handleAgentApiKeys = () => {
+    logger.info(
+      "Agent API Keys button clicked",
+      { agentId, agentName: agent.name },
+      "ChatInterface.handleAgentApiKeys"
+    );
+    showToast.info("🔑 Agent API Keys functionality coming soon!");
+  };
+
   const renderTypingIndicator = () => (
     <div className="flex justify-start mb-4">
       <div className="bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-lg px-4 py-2 max-w-xs">
@@ -508,7 +518,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
             </p>
           )}
         </div>
-        <div className="flex items-center space-x-2">
+        {/* Action Buttons */}
+        <div className="flex space-x-2 flex-shrink-0 w-full sm:w-auto">
           <button
             onClick={() => {
               // Start a new chat - clear current thread and create new one
@@ -537,6 +548,26 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               />
             </svg>
             <span>New Chat</span>
+          </button>
+
+          <button
+            onClick={handleAgentApiKeys}
+            className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-bg-card)] text-[var(--color-text-secondary)] rounded border border-[var(--color-border-primary)] hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-cyan-border)] hover-neon-glow-cyan transition-all duration-200 whitespace-nowrap"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"
+              />
+            </svg>
+            <span>Agent API Keys</span>
           </button>
 
           {onToggleViewMode && (

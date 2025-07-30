@@ -29,6 +29,7 @@ export const SOCIAL_LINKS = {
   WEBSITE: "https://www.crestal.network/",
   DOCS: "https://docs.crestal.network/",
   EMAIL: "support@crestal.network",
+  API_DOCS: "https://sandbox.service.crestal.dev/redoc",
 };
 
 // API Endpoints

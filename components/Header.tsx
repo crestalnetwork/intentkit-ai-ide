@@ -9,6 +9,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import useWallet from "@/hooks/useWallet";
 import { isAddress, shortenAddress } from "@/utils/address";
 import { getPrivyAccountInfo } from "@/utils/common";
+import { SOCIAL_LINKS } from "@/lib/utils/config";
 
 interface HeaderProps {
   title: string;
@@ -107,12 +108,6 @@ const Header: React.FC<HeaderProps> = ({
   //   logger.debug("Auth modal closed", {}, "Header.handleCloseAuthModal");
   //   setShowAuthModal(false);
   // };
-
-  const handleGetApiKey = () => {
-    logger.info("API key button clicked", {}, "Header.handleGetApiKey");
-    showToast.info("🔑 API Key functionality coming soon!");
-    setShowProfileDropdown(false);
-  };
 
   const handleProfileSignOut = async () => {
     logger.info("Profile sign out clicked", {}, "Header.handleProfileSignOut");
@@ -258,8 +253,11 @@ const Header: React.FC<HeaderProps> = ({
                         </svg>
                         <span>Quick Creator</span>
                       </Link>
-                      <button
-                        onClick={handleGetApiKey}
+                      <a
+                        href={SOCIAL_LINKS.API_DOCS}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setShowProfileDropdown(false)}
                         className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-white hover:bg-[#d0ff16]/10 transition-colors"
                       >
                         <svg
@@ -272,11 +270,24 @@ const Header: React.FC<HeaderProps> = ({
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             strokeWidth={2}
-                            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"
+                            d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
                           />
                         </svg>
-                        <span>Get API Key</span>
-                      </button>
+                        <span>View API Docs</span>
+                        <svg
+                          className="w-3 h-3 text-gray-400 ml-auto"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                          />
+                        </svg>
+                      </a>
                       {onBaseUrlChange && (
                         <button
                           onClick={() => {

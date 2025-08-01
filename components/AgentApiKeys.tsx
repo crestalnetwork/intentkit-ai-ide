@@ -182,7 +182,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
           {!loading && !error && (
             <button
               onClick={() => setShowKeys(!showKeys)}
-              className={`text-xs px-3 py-1.5 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.primary.main}] border border-[${theme.colors.primary.border}] rounded-lg hover:bg-[${theme.colors.primary.light}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200 flex items-center space-x-1`}
+              className={`text-xs px-3 py-1.5 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.primary.main}] border border-[${theme.colors.primary.border}] rounded-lg hover:bg-[${theme.colors.primary.light}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200 flex items-center space-x-1 cursor-pointer`}
             >
               <svg
                 className="w-3 h-3"
@@ -208,7 +208,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
           <button
             onClick={loadApiKeys}
             disabled={loading}
-            className={`text-xs px-3 py-1.5 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.secondary.main}] border border-[${theme.colors.secondary.border}] rounded-lg hover:bg-[${theme.colors.secondary.light}] hover:border-[${theme.colors.secondary.borderHover}] transition-all duration-200 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className={`text-xs px-3 py-1.5 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.secondary.main}] border border-[${theme.colors.secondary.border}] rounded-lg hover:bg-[${theme.colors.secondary.light}] hover:border-[${theme.colors.secondary.borderHover}] transition-all duration-200 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
           >
             <svg
               className={`w-3 h-3 ${loading ? "animate-spin" : ""}`}
@@ -302,7 +302,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                   onClick={() =>
                     copyToClipboard(apiKeys.api_key, "Private API key")
                   }
-                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.neon.cyan.subtle}] text-[${theme.colors.neon.cyan.main}] border border-[${theme.colors.neon.cyan.border}] rounded-lg hover:bg-[${theme.colors.neon.cyan.glow}] hover:text-[${theme.colors.neon.cyan.bright}] hover:border-[${theme.colors.neon.cyan.main}] hover:shadow-[${theme.shadows.neonCyan}] transition-all duration-200 flex items-center space-x-1 font-medium`}
+                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.neon.cyan.subtle}] text-[${theme.colors.neon.cyan.main}] border border-[${theme.colors.neon.cyan.border}] rounded-lg hover:bg-[${theme.colors.neon.cyan.glow}] hover:text-[${theme.colors.neon.cyan.bright}] hover:border-[${theme.colors.neon.cyan.main}] hover:shadow-[${theme.shadows.neonCyan}] transition-all duration-200 flex items-center space-x-1 font-medium cursor-pointer`}
                 >
                   <svg
                     className="w-3 h-3"
@@ -353,7 +353,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                   onClick={() =>
                     copyToClipboard(apiKeys.api_key_public, "Public API key")
                   }
-                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.neon.lime.subtle}] text-[${theme.colors.neon.lime.main}] border border-[${theme.colors.neon.lime.border}] rounded-lg hover:bg-[${theme.colors.neon.lime.glow}] hover:text-[${theme.colors.neon.lime.bright}] hover:border-[${theme.colors.neon.lime.main}] hover:shadow-[${theme.shadows.neonLime}] transition-all duration-200 flex items-center space-x-1 font-medium`}
+                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.neon.lime.subtle}] text-[${theme.colors.neon.lime.main}] border border-[${theme.colors.neon.lime.border}] rounded-lg hover:bg-[${theme.colors.neon.lime.glow}] hover:text-[${theme.colors.neon.lime.bright}] hover:border-[${theme.colors.neon.lime.main}] hover:shadow-[${theme.shadows.neonLime}] transition-all duration-200 flex items-center space-x-1 font-medium cursor-pointer`}
                 >
                   <svg
                     className="w-3 h-3"
@@ -430,7 +430,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                           "API documentation URL"
                         )
                       }
-                      className={`text-xs px-2 py-1 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] border border-[#1a1a1a] rounded hover:bg-[${theme.colors.neon.cyan.subtle}] hover:text-[${theme.colors.neon.cyan.main}] hover:border-[${theme.colors.neon.cyan.border}] transition-all duration-200`}
+                      className={`text-xs px-2 py-1 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] border border-[#1a1a1a] rounded hover:bg-[${theme.colors.neon.cyan.subtle}] hover:text-[${theme.colors.neon.cyan.main}] hover:border-[${theme.colors.neon.cyan.border}] transition-all duration-200 cursor-pointer`}
                     >
                       Copy URL
                     </button>
@@ -438,7 +438,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                       href={apiKeys.api_doc}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`text-xs px-2 py-1 bg-[${theme.colors.primary.light}] text-[${theme.colors.primary.main}] border border-[${theme.colors.primary.border}] rounded hover:bg-[${theme.colors.primary.glow}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200`}
+                      className={`text-xs px-2 py-1 bg-[${theme.colors.primary.light}] text-[${theme.colors.primary.main}] border border-[${theme.colors.primary.border}] rounded hover:bg-[${theme.colors.primary.glow}] hover:border-[${theme.colors.primary.borderHover}] transition-all duration-200 cursor-pointer`}
                     >
                       View Docs
                     </a>
@@ -456,7 +456,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                       onClick={() =>
                         copyToClipboard(apiKeys.doc_for_ai, "OpenAPI JSON URL")
                       }
-                      className={`text-xs px-2 py-1 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] border border-[#1a1a1a] rounded hover:bg-[${theme.colors.neon.cyan.subtle}] hover:text-[${theme.colors.neon.cyan.main}] hover:border-[${theme.colors.neon.cyan.border}] transition-all duration-200`}
+                      className={`text-xs px-2 py-1 bg-[${theme.colors.background.tertiary}] text-[${theme.colors.text.secondary}] border border-[#1a1a1a] rounded hover:bg-[${theme.colors.neon.cyan.subtle}] hover:text-[${theme.colors.neon.cyan.main}] hover:border-[${theme.colors.neon.cyan.border}] transition-all duration-200 cursor-pointer`}
                     >
                       Copy URL
                     </button>
@@ -464,7 +464,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                       href={apiKeys.doc_for_ai}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className={`text-xs px-2 py-1 bg-[${theme.colors.secondary.light}] text-[${theme.colors.secondary.main}] border border-[${theme.colors.secondary.border}] rounded hover:bg-[${theme.colors.secondary.glow}] hover:border-[${theme.colors.secondary.borderHover}] transition-all duration-200`}
+                      className={`text-xs px-2 py-1 bg-[${theme.colors.secondary.light}] text-[${theme.colors.secondary.main}] border border-[${theme.colors.secondary.border}] rounded hover:bg-[${theme.colors.secondary.glow}] hover:border-[${theme.colors.secondary.borderHover}] transition-all duration-200 cursor-pointer`}
                     >
                       View JSON
                     </a>
@@ -508,7 +508,7 @@ const AgentApiKeys: React.FC<AgentApiKeysProps> = ({ agent }) => {
                 <button
                   onClick={resetApiKeys}
                   disabled={resetting}
-                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.error.main}] text-white border border-[${theme.colors.error.main}] rounded-lg hover:bg-[${theme.colors.error.main}]/80 transition-all duration-200 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed`}
+                  className={`text-xs px-3 py-1.5 bg-[${theme.colors.error.main}] text-white border border-[${theme.colors.error.main}] rounded-lg hover:bg-[${theme.colors.error.main}]/80 transition-all duration-200 flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer`}
                 >
                   <svg
                     className={`w-3 h-3 ${resetting ? "animate-spin" : ""}`}

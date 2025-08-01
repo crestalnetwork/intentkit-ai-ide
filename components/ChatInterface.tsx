@@ -7,6 +7,7 @@ import apiClient, {
 } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
 import { showToast } from "../lib/utils/toast";
+import theme from "../lib/utils/theme";
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   baseUrl,
@@ -373,7 +374,56 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       { agentId, agentName: agent.name },
       "ChatInterface.handleAgentApiKeys"
     );
-    showToast.info("🔑 Agent API Keys functionality coming soon!");
+
+    // Show feedback to user
+    showToast.info("🔑 Navigating to Agent API Keys...");
+
+    // Switch to detail view if currently in chat mode
+    if (viewMode === "chat" && onToggleViewMode) {
+      onToggleViewMode();
+    }
+
+    // Scroll to API keys section with improved timing and fallback
+    const scrollToApiKeys = () => {
+      const apiKeysElement = document.getElementById("agent-api-keys");
+      logger.info(
+        "Attempting to scroll to API keys section",
+        { elementFound: !!apiKeysElement },
+        "ChatInterface.scrollToApiKeys"
+      );
+
+      if (apiKeysElement) {
+        // First, ensure the element is visible
+        apiKeysElement.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+          inline: "nearest",
+        });
+
+        // Add a subtle highlight effect
+        apiKeysElement.style.boxShadow = `0 0 20px ${theme.colors.neon.cyan.glow}`;
+        setTimeout(() => {
+          apiKeysElement.style.boxShadow = "";
+        }, 2000);
+
+        logger.info(
+          "Successfully scrolled to API keys section",
+          {},
+          "ChatInterface.scrollToApiKeys"
+        );
+      } else {
+        logger.warn(
+          "API keys element not found, retrying...",
+          {},
+          "ChatInterface.scrollToApiKeys"
+        );
+        // Retry after another delay if element not found
+        setTimeout(scrollToApiKeys, 500);
+      }
+    };
+
+    // Initial delay based on view mode
+    setTimeout(scrollToApiKeys, viewMode === "chat" ? 600 : 200);
   };
 
   const renderTypingIndicator = () => (

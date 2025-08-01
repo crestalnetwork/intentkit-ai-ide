@@ -62,6 +62,8 @@ export const API_ENDPOINTS = {
   SKILLS: "/skills",
   LLMS: "/llms",
   AGENT_SCHEMA: "/agent-schema",
+  AGENT_API_KEY: (agentId: string) => `/agents/${agentId}/api-key`,
+  AGENT_API_KEY_RESET: (agentId: string) => `/agents/${agentId}/api-key/reset`,
   SKILL_ICON: (skill: string, icon: string, ext: string) =>
     `/metadata/skills/${skill}/${icon}.${ext}`,
 };

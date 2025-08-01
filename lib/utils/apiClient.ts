@@ -167,6 +167,15 @@ export interface HealthResponse {
   timestamp?: string;
 }
 
+// Agent API Key response interface
+export interface AgentApiKeyResponse {
+  api_key: string;
+  api_key_public: string;
+  base_url: string;
+  api_doc: string;
+  doc_for_ai: string;
+}
+
 export const ClientEventEmitter = mitt();
 
 class ApiClient {
@@ -541,6 +550,21 @@ class ApiClient {
 
   public async getAgentSchema(): Promise<any> {
     const response = await this.client.get<any>(API_ENDPOINTS.AGENT_SCHEMA);
+    return response.data;
+  }
+
+  // Agent API Key Management
+  public async getAgentApiKey(agentId: string): Promise<AgentApiKeyResponse> {
+    const response = await this.client.get<AgentApiKeyResponse>(
+      API_ENDPOINTS.AGENT_API_KEY(agentId)
+    );
+    return response.data;
+  }
+
+  public async resetAgentApiKey(agentId: string): Promise<AgentApiKeyResponse> {
+    const response = await this.client.post<AgentApiKeyResponse>(
+      API_ENDPOINTS.AGENT_API_KEY_RESET(agentId)
+    );
     return response.data;
   }
 

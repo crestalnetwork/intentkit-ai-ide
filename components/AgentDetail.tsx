@@ -7,6 +7,8 @@ import axios from "axios";
 // import theme from "../lib/utils/theme";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
+import AgentApiKeys from "./AgentApiKeys";
+import SkillsPanel from "./SkillsPanel";
 
 // Register the json language for PrismLight
 SyntaxHighlighter.registerLanguage("json", json);
@@ -44,6 +46,9 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
   const [password, setPassword] = useState<string>(
     localStorage.getItem("intentkit_password") || ""
   );
+
+  // Skills panel state
+  const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
 
   // Update edited prompts when agent changes
   useEffect(() => {
@@ -806,22 +811,45 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
 
             {agent.skills && Object.keys(agent.skills).length > 0 && (
               <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4">
-                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] mb-4 flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-2 text-[var(--color-neon-lime)]"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center">
+                    <svg
+                      className="w-4 h-4 mr-2 text-[var(--color-neon-lime)]"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                      />
+                    </svg>
+                    Skills ({Object.keys(agent.skills).length})
+                  </h4>
+
+                  {/* View All Skills Button */}
+                  <button
+                    onClick={() => setShowSkillsPanel(true)}
+                    className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-bg-card)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-purple)] hover-neon-glow-purple transition-all duration-200 font-medium"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                    />
-                  </svg>
-                  Skills ({Object.keys(agent.skills).length})
-                </h4>
+                    <svg
+                      className="w-3 h-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
+                    </svg>
+                    <span>View All Skills</span>
+                  </button>
+                </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {Object.entries(agent.skills).map(
@@ -912,9 +940,29 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Agent API Keys Section */}
+            <div className="mt-4">
+              <AgentApiKeys agent={agent} />
+            </div>
           </>
         )}
       </div>
+
+      {/* Skills Panel */}
+      {showSkillsPanel && (
+        <SkillsPanel
+          isVisible={showSkillsPanel}
+          onClose={() => setShowSkillsPanel(false)}
+          onAddSkill={(skillName, skillConfig) => {
+            // Show feedback to user - in a real implementation you'd update the agent
+            showToast.success(
+              `Skill "${skillName}" configuration copied to clipboard!`
+            );
+            setShowSkillsPanel(false);
+          }}
+        />
+      )}
     </div>
   );
 };

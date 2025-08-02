@@ -165,7 +165,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-neon-lime)] transition-colors hover-neon-glow-lime rounded"
+            className="p-2 text-[var(--color-text-tertiary)] hover:text-[var(--color-neon-lime)] transition-colors hover-neon-glow-lime rounded cursor-pointer"
           >
             <svg
               className="w-5 h-5"
@@ -431,7 +431,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                                 href={getApiKeyUrl(skill)!.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center space-x-2 px-4 py-2 bg-[var(--color-neon-cyan)] text-black rounded-lg hover:bg-[var(--color-neon-cyan-bright)] transition-all duration-200 font-medium text-sm shadow-lg hover:shadow-xl hover:shadow-[var(--color-neon-cyan-glow)] transform hover:scale-[1.02]"
+                                className="inline-flex items-center space-x-2 px-4 py-2 bg-[var(--color-neon-cyan)] text-black rounded-lg hover:bg-[var(--color-neon-cyan-bright)] transition-all duration-200 font-medium text-sm shadow-lg hover:shadow-xl hover:shadow-[var(--color-neon-cyan-glow)] transform hover:scale-[1.02] cursor-pointer"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <svg
@@ -481,7 +481,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                                   "JSON configuration copied to clipboard!"
                                 );
                               }}
-                              className="text-xs py-1 px-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-bg-card)] hover:text-[var(--color-neon-cyan)] transition-all duration-200 flex items-center space-x-1"
+                              className="text-xs py-1 px-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-bg-card)] hover:text-[var(--color-neon-cyan)] transition-all duration-200 flex items-center space-x-1 cursor-pointer"
                             >
                               <svg
                                 className="w-3 h-3"
@@ -526,7 +526,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                                   "YAML configuration copied to clipboard!"
                                 );
                               }}
-                              className="text-xs py-1 px-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-bg-card)] hover:text-[var(--color-neon-cyan)] transition-all duration-200 flex items-center space-x-1"
+                              className="text-xs py-1 px-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-bg-card)] hover:text-[var(--color-neon-cyan)] transition-all duration-200 flex items-center space-x-1 cursor-pointer"
                             >
                               <svg
                                 className="w-3 h-3"

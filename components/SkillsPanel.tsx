@@ -134,6 +134,27 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
     };
   };
 
+  // Generate skill config with skill name as key for copying to agent editor
+  const generateSkillConfigForAgent = (
+    skillName: string,
+    skill: SkillConfig
+  ) => {
+    return {
+      [skillName]: {
+        enabled: true,
+        states: Object.keys(skill.properties.states?.properties || {}).reduce(
+          (acc, stateName) => {
+            acc[stateName] = "private";
+            return acc;
+          },
+          {} as any
+        ),
+        api_key_provider:
+          skill.properties.api_key_provider?.default || "platform",
+      },
+    };
+  };
+
   const generateYAML = (skillName: string, skill: SkillConfig) => {
     const config = generateSkillConfig(skillName, skill);
     return `skills:
@@ -472,13 +493,13 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const jsonConfig = JSON.stringify(
-                                  generateSkillConfig(skillName, skill),
+                                  generateSkillConfigForAgent(skillName, skill),
                                   null,
                                   2
                                 );
                                 navigator.clipboard.writeText(jsonConfig);
                                 showToast.success(
-                                  "JSON configuration copied to clipboard!"
+                                  `Skill "${skillName}" config copied to clipboard! Paste into agent's skills section.`
                                 );
                               }}
                               className="text-xs py-1 px-2 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] text-[var(--color-text-secondary)] rounded hover:bg-[var(--color-bg-card)] hover:text-[var(--color-neon-cyan)] transition-all duration-200 flex items-center space-x-1 cursor-pointer"
@@ -501,7 +522,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                           </div>
                           <pre className="bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded p-3 text-xs text-[var(--color-text-primary)] overflow-x-auto">
                             {JSON.stringify(
-                              generateSkillConfig(skillName, skill),
+                              generateSkillConfigForAgent(skillName, skill),
                               null,
                               2
                             )}

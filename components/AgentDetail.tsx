@@ -40,12 +40,7 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
     message: string;
   } | null>(null);
 
-  const [username, setUsername] = useState<string>(
-    localStorage.getItem("intentkit_username") || ""
-  );
-  const [password, setPassword] = useState<string>(
-    localStorage.getItem("intentkit_password") || ""
-  );
+  // Removed username and password state - using API client with Bearer token authentication
 
   // Skills panel state
   const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
@@ -130,6 +125,17 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
     setEditedConfig(e.target.value);
   };
 
+  const handleFormatJson = () => {
+    try {
+      const parsed = JSON.parse(editedConfig);
+      const formatted = JSON.stringify(parsed, null, 2);
+      setEditedConfig(formatted);
+      showToast.success("JSON formatted successfully!");
+    } catch (error) {
+      showToast.error("Invalid JSON format. Cannot format.");
+    }
+  };
+
   const handleSavePrompts = async () => {
     try {
       setIsPromptsSaving(true);
@@ -201,10 +207,13 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
       setIsSaving(true);
       setSaveResult(null);
 
-      // Validate JSON
+      // Validate and format JSON
       let configObj;
       try {
         configObj = JSON.parse(editedConfig);
+        // Auto-format the JSON for better display
+        const formattedJson = JSON.stringify(configObj, null, 2);
+        setEditedConfig(formattedJson);
       } catch (err) {
         setSaveResult({
           success: false,
@@ -214,56 +223,65 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
         return;
       }
 
-      // Get base URL from localStorage
-      const baseUrl =
-        localStorage.getItem("intentkit_base_url") || "http://127.0.0.1:8000";
-      const apiBaseUrl = baseUrl.replace("localhost", "127.0.0.1");
+      // Ensure required fields are present
+      const requiredFields = ["name", "purpose", "personality", "principles"];
+      const missingFields = requiredFields.filter(
+        (field) => !configObj[field] || configObj[field].trim() === ""
+      );
 
-      // Set auth headers if credentials are available
-      const config: any = {};
-      if (username && password) {
-        config.auth = {
-          username: username,
-          password: password,
-        };
+      if (missingFields.length > 0) {
+        setSaveResult({
+          success: false,
+          message: `Missing required fields: ${missingFields.join(
+            ", "
+          )}. These fields are required by the API.`,
+        });
+        setIsSaving(false);
+        return;
       }
 
-      // Send PATCH request to update the agent
-      const response = await axios.patch(
-        `${apiBaseUrl}/agents/${agent.id}`,
-        configObj,
-        config
-      );
+      // Use API client for consistent authentication
+      const response = await apiClient.updateAgent(agent.id!, configObj);
 
       setSaveResult({
         success: true,
         message: "Agent updated successfully!",
       });
 
-      // Refresh the agents list using the global function
-      if (typeof window !== "undefined" && (window as any).refreshAgentsList) {
-        (window as any).refreshAgentsList();
+      showToast.success("Agent updated successfully!");
+
+      // Refresh the agent data if global function is available
+      if (
+        typeof window !== "undefined" &&
+        (window as any).refreshSelectedAgent
+      ) {
+        (window as any).refreshSelectedAgent();
       }
 
       // Add a small delay to show the success message
       setTimeout(() => {
         setShowEditMode(false);
       }, 1500);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating agent:", error);
 
       let errorMessage = "Failed to update agent.";
 
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
-          errorMessage =
-            "Authentication failed. Please check your credentials.";
+          errorMessage = "Authentication failed. Please sign in again.";
         } else if (error.response?.status === 400) {
           errorMessage = `Bad request: ${
             error.response.data?.detail || "Invalid data"
           }`;
+        } else if (error.response?.status === 403) {
+          errorMessage = "Permission denied. You don't own this agent.";
         } else if (error.response?.status === 404) {
           errorMessage = "Agent not found.";
+        } else if (error.response?.status === 422) {
+          errorMessage = `Validation error: ${
+            error.response.data?.detail || "Invalid agent configuration"
+          }`;
         } else if (error.response?.data?.detail) {
           errorMessage = `Error: ${error.response.data.detail}`;
         }
@@ -273,6 +291,8 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
         success: false,
         message: errorMessage,
       });
+
+      showToast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -360,6 +380,27 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
             <div className="bg-[var(--color-bg-secondary)] px-3 py-2 text-sm font-medium text-[var(--color-text-primary)] border-b border-[var(--color-border-primary)] flex justify-between items-center">
               <span>Edit Agent Configuration</span>
               <div className="flex space-x-2">
+                <button
+                  onClick={handleFormatJson}
+                  className="text-xs text-[var(--color-neon-purple)] hover:text-[var(--color-neon-purple-bright)] py-1 px-2 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-purple-border)] hover:bg-[var(--color-neon-purple-subtle)] transition-all duration-200 flex items-center space-x-1"
+                  disabled={isSaving}
+                  title="Format JSON"
+                >
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
+                  </svg>
+                  <span>Format JSON</span>
+                </button>
                 <button
                   onClick={() => setShowEditMode(false)}
                   className="text-xs text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] py-1 px-2 bg-[var(--color-bg-card)] rounded border border-[var(--color-neon-cyan-border)] hover:bg-[var(--color-neon-cyan-subtle)] transition-all duration-200"
@@ -809,48 +850,53 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
               </div>
             </div>
 
-            {agent.skills && Object.keys(agent.skills).length > 0 && (
-              <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center">
-                    <svg
-                      className="w-4 h-4 mr-2 text-[var(--color-neon-lime)]"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-                      />
-                    </svg>
-                    Skills ({Object.keys(agent.skills).length})
-                  </h4>
-
-                  {/* View All Skills Button */}
-                  <button
-                    onClick={() => setShowSkillsPanel(true)}
-                    className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-bg-card)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-purple)] hover-neon-glow-purple transition-all duration-200 font-medium"
+            {/* Skills Section - Always shown */}
+            <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center">
+                  <svg
+                    className="w-4 h-4 mr-2 text-[var(--color-neon-lime)]"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
-                    <svg
-                      className="w-3 h-3"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                      />
-                    </svg>
-                    <span>View All Skills</span>
-                  </button>
-                </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                    />
+                  </svg>
+                  Skills ({agent.skills ? Object.keys(agent.skills).length : 0})
+                </h4>
 
+                {/* View All Skills Button */}
+                <button
+                  onClick={() => setShowSkillsPanel(true)}
+                  className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-bg-card)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-purple)] hover-neon-glow-purple transition-all duration-200 font-medium"
+                >
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                    />
+                  </svg>
+                  <span>
+                    {agent.skills && Object.keys(agent.skills).length > 0
+                      ? "View All Skills"
+                      : "Browse Skills"}
+                  </span>
+                </button>
+              </div>
+
+              {agent.skills && Object.keys(agent.skills).length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {Object.entries(agent.skills).map(
                     ([skillName, skillData]) => (
@@ -938,8 +984,37 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
                     )
                   )}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <div className="flex flex-col items-center space-y-3">
+                    <div className="w-12 h-12 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-primary)] rounded-lg flex items-center justify-center">
+                      <svg
+                        className="w-6 h-6 text-[var(--color-text-tertiary)]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="text-sm text-[var(--color-text-secondary)] mb-1">
+                        No skills configured
+                      </p>
+                      <p className="text-xs text-[var(--color-text-tertiary)]">
+                        Click "Browse Skills" above to add capabilities to your
+                        agent
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Agent API Keys Section */}
             <div className="mt-4">

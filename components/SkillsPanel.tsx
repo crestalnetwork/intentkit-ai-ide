@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import skillsData from "../lib/data/skills.json";
 import { showToast } from "../lib/utils/toast";
+import apiClient from "../lib/utils/apiClient";
+import ApiKeyModal from "./ApiKeyModal";
 
 interface SkillsPanelProps {
   isVisible: boolean;
   onClose: () => void;
   onAddSkill: (skillName: string, skillConfig: any) => void;
+  agent: any; // Current agent object
+  onAgentUpdate?: () => void; // Callback when agent is updated
 }
 
 interface SkillStates {
@@ -40,10 +44,14 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
   isVisible,
   onClose,
   onAddSkill,
+  agent,
+  onAgentUpdate,
 }) => {
   const [expandedSkill, setExpandedSkill] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showApiKeyModal, setShowApiKeyModal] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
 
   // Extract skills from the JSON schema
   const skills = skillsData.properties?.skills?.properties || {};
@@ -70,6 +78,11 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
       return matchesSearch && matchesCategory;
     }
   );
+
+  // Helper function to check if skill is already added to agent
+  const isSkillAdded = (skillName: string) => {
+    return agent?.skills && agent.skills[skillName];
+  };
 
   // Helper function to extract URL from markdown link format
   const extractUrlFromMarkdown = (markdownLink: string) => {
@@ -166,6 +179,122 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
     api_key_provider: ${
       skill.properties.api_key_provider?.default || "platform"
     }`;
+  };
+
+  // Function to add skill to agent
+  const handleAddSkill = async (skillName: string, skill: SkillConfig) => {
+    try {
+      setIsUpdating(skillName);
+
+      // Check if skill requires owner API key
+      if (requiresOwnerApiKey(skill)) {
+        setShowApiKeyModal(skillName);
+        return;
+      }
+
+      // Generate skill config
+      const skillConfig = {
+        enabled: true,
+        states: Object.keys(skill.properties.states?.properties || {}).reduce(
+          (acc, stateName) => {
+            acc[stateName] = "private";
+            return acc;
+          },
+          {} as any
+        ),
+        api_key_provider:
+          skill.properties.api_key_provider?.default || "platform",
+      };
+
+      // Update agent with new skill
+      const updatedAgent = {
+        ...agent,
+        skills: {
+          ...agent.skills,
+          [skillName]: skillConfig,
+        },
+      };
+
+      await apiClient.updateAgent(agent.id, updatedAgent);
+      showToast.success(`Skill "${skillName}" added successfully!`);
+      onAgentUpdate?.();
+    } catch (error: any) {
+      console.error("Error adding skill:", error);
+      showToast.error(`Failed to add skill: ${error.message}`);
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
+  // Function to add skill with API key
+  const handleAddSkillWithApiKey = async (
+    skillName: string,
+    skill: SkillConfig,
+    apiKey: string
+  ) => {
+    try {
+      setIsUpdating(skillName);
+
+      // Generate skill config with API key
+      const skillConfig = {
+        enabled: true,
+        states: Object.keys(skill.properties.states?.properties || {}).reduce(
+          (acc, stateName) => {
+            acc[stateName] = "private";
+            return acc;
+          },
+          {} as any
+        ),
+        api_key_provider: "agent_owner",
+        api_key: apiKey,
+      };
+
+      // Update agent with new skill
+      const updatedAgent = {
+        ...agent,
+        skills: {
+          ...agent.skills,
+          [skillName]: skillConfig,
+        },
+      };
+
+      await apiClient.updateAgent(agent.id, updatedAgent);
+      showToast.success(
+        `Skill "${skillName}" added successfully with your API key!`
+      );
+      setShowApiKeyModal(null);
+      onAgentUpdate?.();
+    } catch (error: any) {
+      console.error("Error adding skill:", error);
+      showToast.error(`Failed to add skill: ${error.message}`);
+    } finally {
+      setIsUpdating(null);
+    }
+  };
+
+  // Function to remove skill from agent
+  const handleRemoveSkill = async (skillName: string) => {
+    try {
+      setIsUpdating(skillName);
+
+      // Remove skill from agent
+      const updatedSkills = { ...agent.skills };
+      delete updatedSkills[skillName];
+
+      const updatedAgent = {
+        ...agent,
+        skills: updatedSkills,
+      };
+
+      await apiClient.updateAgent(agent.id, updatedAgent);
+      showToast.success(`Skill "${skillName}" removed successfully!`);
+      onAgentUpdate?.();
+    } catch (error: any) {
+      console.error("Error removing skill:", error);
+      showToast.error(`Failed to remove skill: ${error.message}`);
+    } finally {
+      setIsUpdating(null);
+    }
   };
 
   if (!isVisible) return null;
@@ -308,6 +437,26 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                             </span>
                           </div>
                         )}
+                        {isSkillAdded(skillName) && (
+                          <div className="flex items-center space-x-1 px-2 py-1 bg-[var(--color-neon-lime-subtle)] border border-[var(--color-neon-lime-border)] rounded-full">
+                            <svg
+                              className="w-3 h-3 text-[var(--color-neon-lime)]"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span className="text-xs font-medium text-[var(--color-neon-lime)]">
+                              Added
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -362,21 +511,110 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                         </span>
                       </div>
 
-                      {/* TODO: Add Skill button - will be implemented later */}
-                      {/* 
+                      {/* Add/Remove Skill Buttons */}
+                      {isSkillAdded(skillName) ? (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            onAddSkill(
-                              skillName,
-                              generateSkillConfig(skillName, skill)
-                            );
+                            handleRemoveSkill(skillName);
                           }}
-                          className="text-xs py-1.5 px-3 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover-neon-glow-lime transition-all duration-200 font-medium"
+                          disabled={isUpdating === skillName}
+                          className="text-xs py-1.5 px-3 bg-[var(--color-neon-pink)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-pink-bright)] transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
                         >
-                          Add Skill
+                          {isUpdating === skillName ? (
+                            <>
+                              <svg
+                                className="animate-spin w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  className="opacity-25"
+                                ></circle>
+                                <path
+                                  fill="currentColor"
+                                  className="opacity-75"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              <span>Removing...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                              <span>Remove</span>
+                            </>
+                          )}
                         </button>
-                        */}
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddSkill(skillName, skill);
+                          }}
+                          disabled={isUpdating === skillName}
+                          className="text-xs py-1.5 px-3 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+                        >
+                          {isUpdating === skillName ? (
+                            <>
+                              <svg
+                                className="animate-spin w-3 h-3"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                              >
+                                <circle
+                                  cx="12"
+                                  cy="12"
+                                  r="10"
+                                  stroke="currentColor"
+                                  strokeWidth="4"
+                                  className="opacity-25"
+                                ></circle>
+                                <path
+                                  fill="currentColor"
+                                  className="opacity-75"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                ></path>
+                              </svg>
+                              <span>Adding...</span>
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="w-3 h-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                />
+                              </svg>
+                              <span>Add Skill</span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -586,6 +824,34 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
           )}
         </div>
       </div>
+
+      {/* API Key Input Modal */}
+      <ApiKeyModal
+        isVisible={!!showApiKeyModal}
+        skillName={showApiKeyModal || ""}
+        skillTitle={
+          showApiKeyModal ? (skills as any)[showApiKeyModal]?.title : undefined
+        }
+        apiKeyUrl={
+          showApiKeyModal
+            ? getApiKeyUrl((skills as any)[showApiKeyModal])
+            : null
+        }
+        onClose={() => {
+          setShowApiKeyModal(null);
+          setIsUpdating(null);
+        }}
+        onSubmit={(apiKey) => {
+          if (showApiKeyModal) {
+            handleAddSkillWithApiKey(
+              showApiKeyModal,
+              (skills as any)[showApiKeyModal],
+              apiKey
+            );
+          }
+        }}
+        isLoading={!!showApiKeyModal && isUpdating === showApiKeyModal}
+      />
     </div>
   );
 };

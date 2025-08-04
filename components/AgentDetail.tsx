@@ -1029,8 +1029,18 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
         <SkillsPanel
           isVisible={showSkillsPanel}
           onClose={() => setShowSkillsPanel(false)}
+          agent={agent}
+          onAgentUpdate={() => {
+            // Refresh the agent data
+            if (
+              typeof window !== "undefined" &&
+              (window as any).refreshSelectedAgent
+            ) {
+              (window as any).refreshSelectedAgent();
+            }
+          }}
           onAddSkill={(skillName, skillConfig) => {
-            // Show feedback to user - in a real implementation you'd update the agent
+            // Legacy callback - now handled by onAgentUpdate
             showToast.success(
               `Skill "${skillName}" configuration copied to clipboard!`
             );

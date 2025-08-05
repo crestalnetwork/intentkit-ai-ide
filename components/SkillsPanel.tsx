@@ -8,6 +8,7 @@ interface SkillsPanelProps {
   isVisible: boolean;
   onClose: () => void;
   onAddSkill: (skillName: string, skillConfig: any) => void;
+  onRemoveSkill?: (skillName: string) => void; // Callback for removing skills from non-deployed agents
   agent: any; // Current agent object
   onAgentUpdate?: () => void; // Callback when agent is updated
 }
@@ -44,6 +45,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
   isVisible,
   onClose,
   onAddSkill,
+  onRemoveSkill,
   agent,
   onAgentUpdate,
 }) => {
@@ -206,7 +208,15 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
           skill.properties.api_key_provider?.default || "platform",
       };
 
-      // Update agent with new skill
+      // Check if agent has an ID (deployed) or not (local/non-deployed)
+      if (!agent?.id) {
+        // Non-deployed agent - use the callback to update local state
+        onAddSkill(skillName, { [skillName]: skillConfig });
+        showToast.success(`Skill "${skillName}" added to agent configuration!`);
+        return;
+      }
+
+      // Deployed agent - update via API
       const updatedAgent = {
         ...agent,
         skills: {
@@ -249,7 +259,18 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
         api_key: apiKey,
       };
 
-      // Update agent with new skill
+      // Check if agent has an ID (deployed) or not (local/non-deployed)
+      if (!agent?.id) {
+        // Non-deployed agent - use the callback to update local state
+        onAddSkill(skillName, { [skillName]: skillConfig });
+        showToast.success(
+          `Skill "${skillName}" added to agent configuration with your API key!`
+        );
+        setShowApiKeyModal(null);
+        return;
+      }
+
+      // Deployed agent - update via API
       const updatedAgent = {
         ...agent,
         skills: {
@@ -277,7 +298,21 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
     try {
       setIsUpdating(skillName);
 
-      // Remove skill from agent
+      // Check if agent has an ID (deployed) or not (local/non-deployed)
+      if (!agent?.id) {
+        // Non-deployed agent - use the callback to update local state
+        if (onRemoveSkill) {
+          onRemoveSkill(skillName);
+          showToast.success(
+            `Skill "${skillName}" removed from agent configuration!`
+          );
+        } else {
+          showToast.error("Cannot remove skill from non-deployed agent");
+        }
+        return;
+      }
+
+      // Deployed agent - update via API
       const updatedSkills = { ...agent.skills };
       delete updatedSkills[skillName];
 

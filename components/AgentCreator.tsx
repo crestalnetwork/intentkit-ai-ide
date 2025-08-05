@@ -559,8 +559,6 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     setMessages((prev) => [...prev, removalMessage]);
   };
 
-  // TODO: handleAddSkill function - will be implemented later
-  /*
   const handleAddSkill = (skillName: string, skillConfig: any) => {
     if (!createdAgent) {
       showToast.error("Please create an agent first before adding skills");
@@ -619,16 +617,6 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     setMessages((prev) => [...prev, additionMessage]);
     setShowSkillsPanel(false);
     showToast.success(`✨ Added skill: ${skillName}`);
-  };
-  */
-
-  // Placeholder function for now
-  const handleAddSkill = (skillName: string, skillConfig: any) => {
-    console.log(
-      "Add skill functionality will be implemented later",
-      skillName,
-      skillConfig
-    );
   };
 
   const renderMessage = (message: ConversationMessage, index: number) => {
@@ -1066,6 +1054,8 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         isVisible={showSkillsPanel}
         onClose={() => setShowSkillsPanel(false)}
         onAddSkill={handleAddSkill}
+        onRemoveSkill={removeSkillFromAgent}
+        agent={createdAgent}
       />
     </div>
   );

@@ -23,6 +23,11 @@ const ConversationsPage: React.FC = () => {
     // You could navigate to a detailed view or do something else with the selected project
   };
 
+  const handleBaseUrlChange = (newUrl: string) => {
+    setBaseUrl(newUrl);
+    localStorage.setItem(STORAGE_KEYS.BASE_URL, newUrl);
+  };
+
   // Prepare right actions for the header
   const rightActions = (
     <Link
@@ -54,6 +59,7 @@ const ConversationsPage: React.FC = () => {
         rightActions={rightActions}
         showBaseUrl={true}
         baseUrl={baseUrl}
+        onBaseUrlChange={handleBaseUrlChange}
       />
 
       {/* Main content */}
@@ -67,7 +73,11 @@ const ConversationsPage: React.FC = () => {
       </main>
 
       {/* Footer */}
-      <Footer baseUrl={baseUrl} showConnectionStatus={true} />
+      <Footer
+        baseUrl={baseUrl}
+        showConnectionStatus={true}
+        onBaseUrlChange={handleBaseUrlChange}
+      />
     </div>
   );
 };

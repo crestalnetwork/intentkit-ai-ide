@@ -11,7 +11,7 @@ import { AGENT_TEMPLATES } from "../lib/utils/templates";
 import ChatInterface from "../components/ChatInterface";
 import { Agent } from "../lib/types";
 import logger from "../lib/utils/logger";
-import { DEFAULT_BASE_URL } from "../lib/utils/config";
+import { DEFAULT_BASE_URL, STORAGE_KEYS } from "../lib/utils/config";
 import { trackQuickCreatorEvents } from "../lib/utils/mixpanel";
 import { useAuth } from "@/context/AuthProvider";
 
@@ -23,6 +23,7 @@ const Quick: React.FC = () => {
     useState<AgentTemplate | null>(null);
   const [createdAgent, setCreatedAgent] = useState<Agent | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [baseUrl, setBaseUrl] = useState<string>("");
   const { user, isAuthenticated, handleStartLogin } = useAuth();
   const router = useRouter();
 
@@ -38,6 +39,20 @@ const Quick: React.FC = () => {
   useEffect(() => {
     trackQuickCreatorEvents.pageView();
   }, []);
+
+  // Initialize base URL from config
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedUrl = localStorage.getItem(STORAGE_KEYS.BASE_URL);
+      const defaultUrl = DEFAULT_BASE_URL;
+      setBaseUrl(storedUrl || defaultUrl);
+    }
+  }, []);
+
+  const handleBaseUrlChange = (newUrl: string) => {
+    setBaseUrl(newUrl);
+    localStorage.setItem(STORAGE_KEYS.BASE_URL, newUrl);
+  };
 
   const handleTemplateSelect = (template: AgentTemplate) => {
     logger.info(
@@ -442,7 +457,12 @@ const Quick: React.FC = () => {
       </Head>
 
       {/* Header */}
-      <Header title="Quick Creator" showBaseUrl={false} />
+      <Header
+        title="Quick Creator"
+        showBaseUrl={false}
+        baseUrl={baseUrl}
+        onBaseUrlChange={handleBaseUrlChange}
+      />
 
       {/* Main content - Full height for creating and chat steps */}
       <main
@@ -457,7 +477,11 @@ const Quick: React.FC = () => {
 
       {/* Footer - Only show on templates step */}
       {step === "templates" && (
-        <Footer baseUrl={DEFAULT_BASE_URL} showConnectionStatus={true} />
+        <Footer
+          baseUrl={baseUrl}
+          showConnectionStatus={true}
+          onBaseUrlChange={handleBaseUrlChange}
+        />
       )}
     </div>
   );

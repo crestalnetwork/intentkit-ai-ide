@@ -46,6 +46,11 @@ const CreateAgentPage: React.FC = () => {
     setShowTemplateSelector(false);
   };
 
+  const handleBaseUrlChange = (newUrl: string) => {
+    setBaseUrl(newUrl);
+    localStorage.setItem(STORAGE_KEYS.BASE_URL, newUrl);
+  };
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col h-screen">
       <Head>
@@ -66,6 +71,7 @@ const CreateAgentPage: React.FC = () => {
         }}
         showBaseUrl={false}
         baseUrl={baseUrl}
+        onBaseUrlChange={handleBaseUrlChange}
       />
 
       {/* Authentication Warning */}
@@ -143,7 +149,11 @@ const CreateAgentPage: React.FC = () => {
       />
 
       {/* Footer */}
-      <Footer baseUrl={baseUrl} showConnectionStatus={true} />
+      <Footer
+        baseUrl={baseUrl}
+        showConnectionStatus={true}
+        onBaseUrlChange={handleBaseUrlChange}
+      />
     </div>
   );
 };

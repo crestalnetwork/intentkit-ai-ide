@@ -316,8 +316,11 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
 
       // Handle different error types
       if (error.response?.status === 400) {
-        // Bad request - could be validation error
-        if (error.response?.data?.detail) {
+        // Bad request - could be validation error or other API format
+        if (error.response?.data?.msg) {
+          // Handle the specific API format: { "error": "BadRequest", "msg": "..." }
+          errorMessage = error.response.data.msg;
+        } else if (error.response?.data?.detail) {
           if (Array.isArray(error.response.data.detail)) {
             // Validation errors array
             const validationErrors = error.response.data.detail
@@ -329,6 +332,8 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           }
         } else if (error.response?.data?.message) {
           errorMessage = `Bad request: ${error.response.data.message}`;
+        } else {
+          errorMessage = "Bad request: Invalid agent configuration";
         }
       } else if (error.response?.status === 401) {
         errorMessage = "Authentication expired. Please sign in again.";
@@ -340,6 +345,9 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       } else if (error.message.includes("user_id is required")) {
         errorMessage =
           "Authentication error. Please refresh and sign in again.";
+      } else if (error.response?.data?.msg) {
+        // Handle the specific API format: { "error": "BadRequest", "msg": "..." }
+        errorMessage = error.response.data.msg;
       } else if (error.response?.data?.message) {
         errorMessage = `Generation failed: ${error.response.data.message}`;
       } else if (error.message) {
@@ -454,6 +462,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
           agentName: createdAgent.name,
           error: error.message,
           status: error.response?.status,
+          responseData: error.response?.data,
         },
         "AgentCreator.handleDeployAgent"
       );
@@ -461,12 +470,29 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       console.error("Error deploying agent:", error);
       let errorMessage = "Failed to deploy agent";
 
+      // Handle different error response formats
       if (error.response?.status === 401) {
         errorMessage = "Authentication expired. Please sign in again.";
+      } else if (error.response?.status === 400) {
+        // Handle BadRequest errors with specific format
+        if (error.response?.data?.msg) {
+          errorMessage = error.response.data.msg;
+        } else if (error.response?.data?.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response?.data?.detail) {
+          errorMessage = error.response.data.detail;
+        } else {
+          errorMessage = "Bad request: Invalid agent configuration";
+        }
+      } else if (error.response?.data?.msg) {
+        // Handle the specific API format: { "error": "BadRequest", "msg": "..." }
+        errorMessage = error.response.data.msg;
       } else if (error.response?.data?.message) {
-        errorMessage = `Deployment failed: ${error.response.data.message}`;
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.detail) {
+        errorMessage = error.response.data.detail;
       } else if (error.message) {
-        errorMessage = `Deployment failed: ${error.message}`;
+        errorMessage = error.message;
       }
 
       showToast.error(errorMessage);

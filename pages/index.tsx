@@ -277,82 +277,121 @@ const Home: React.FC = (): JSX.Element => {
 
       {/* Main content */}
       <main className="flex-1 overflow-hidden">
-        <div className="max-w-full h-full px-3 py-2">
-          <div className="grid grid-cols-12 gap-3 h-full">
-            {/* Sidebar - Conversations List */}
-            <div className="col-span-12 sm:col-span-5 md:col-span-4 lg:col-span-3 h-full overflow-hidden">
-              <ConversationsList
-                baseUrl={baseUrl}
-                selectedAgent={selectedAgent}
-                selectedThreadId={selectedThread?.id}
-                onThreadSelect={handleThreadSelect}
-                onAgentSelect={handleAgentSelect} // Now passes agent directly
-                refreshKey={conversationRefreshKey}
-              />
-            </div>
+        {isAuthenticated ? (
+          <div className="max-w-full h-full px-3 py-2">
+            <div className="grid grid-cols-12 gap-3 h-full">
+              {/* Sidebar - Conversations List */}
+              <div className="col-span-12 sm:col-span-5 md:col-span-4 lg:col-span-3 h-full overflow-hidden">
+                <ConversationsList
+                  baseUrl={baseUrl}
+                  selectedAgent={selectedAgent}
+                  selectedThreadId={selectedThread?.id}
+                  onThreadSelect={handleThreadSelect}
+                  onAgentSelect={handleAgentSelect} // Now passes agent directly
+                  refreshKey={conversationRefreshKey}
+                />
+              </div>
 
-            {/* Main content - Chat or Agent Details */}
-            <div className="col-span-12 sm:col-span-7 md:col-span-8 lg:col-span-9 h-full overflow-hidden">
-              {selectedAgent ? (
-                viewMode === "chat" ? (
-                  <ChatInterface
-                    baseUrl={baseUrl}
-                    agent={selectedAgent}
-                    selectedThread={selectedThread}
-                    onToggleViewMode={toggleViewMode}
-                    viewMode={viewMode}
-                    onNewChatCreated={handleNewChatCreated}
-                  />
+              {/* Main content - Chat or Agent Details */}
+              <div className="col-span-12 sm:col-span-7 md:col-span-8 lg:col-span-9 h-full overflow-hidden">
+                {selectedAgent ? (
+                  viewMode === "chat" ? (
+                    <ChatInterface
+                      baseUrl={baseUrl}
+                      agent={selectedAgent}
+                      selectedThread={selectedThread}
+                      onToggleViewMode={toggleViewMode}
+                      viewMode={viewMode}
+                      onNewChatCreated={handleNewChatCreated}
+                    />
+                  ) : (
+                    <AgentDetail
+                      agent={selectedAgent}
+                      onToggleViewMode={toggleViewMode}
+                    />
+                  )
                 ) : (
-                  <AgentDetail
-                    agent={selectedAgent}
-                    onToggleViewMode={toggleViewMode}
+                  <div className="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-primary)] p-6 text-center text-[var(--color-text-tertiary)] flex flex-col items-center justify-center h-full">
+                    <svg
+                      className="h-16 w-16 text-[var(--color-text-tertiary)]"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1}
+                        d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      />
+                    </svg>
+                    <h3 className="mt-6 text-lg font-medium text-[var(--color-text-primary)]">
+                      Select an Agent to Start
+                    </h3>
+                    <p className="mt-3 max-w-md mx-auto text-base text-[var(--color-text-secondary)]">
+                      Your conversations are loading. Select an agent from the
+                      sidebar to start chatting.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Unauthenticated state - centered sign in message
+          <div className="flex items-center justify-center h-full px-6">
+            <div className="max-w-md w-full text-center">
+              <div className="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border-primary)] p-8">
+                <svg
+                  className="h-16 w-16 text-[var(--color-text-tertiary)] mx-auto"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
                   />
-                )
-              ) : (
-                <div
-                  className={`bg-[${theme.colors.background.primary}] rounded-xl border border-[${theme.colors.border.primary}] p-6 text-center text-[${theme.colors.text.tertiary}] flex flex-col items-center justify-center h-full`}
+                </svg>
+                <h3 className="mt-6 text-xl font-semibold text-[var(--color-text-primary)]">
+                  Welcome to IntentKit AI
+                </h3>
+                <p className="mt-3 text-base text-[var(--color-text-secondary)]">
+                  Please sign in to view and chat with your agents.
+                </p>
+                <button
+                  onClick={() => handleStartLogin()}
+                  className="mt-6 inline-flex items-center px-6 py-3 bg-[var(--color-neon-lime)] text-black text-sm font-medium rounded-lg hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover-neon-glow-lime transition-all duration-200"
                 >
                   <svg
-                    className={`h-16 w-16 text-[${theme.colors.text.tertiary}]`}
+                    className="w-4 h-4 mr-2"
                     fill="none"
-                    viewBox="0 0 24 24"
                     stroke="currentColor"
+                    viewBox="0 0 24 24"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+                      strokeWidth={2}
+                      d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                     />
                   </svg>
-                  <h3 className="mt-6 text-lg font-medium text-[#c9d1d9]">
-                    {isAuthenticated
-                      ? "Select an Agent to Start"
-                      : "Welcome to IntentKit"}
-                  </h3>
-                  <p className="mt-3 max-w-md mx-auto text-base">
-                    {isAuthenticated
-                      ? "Your conversations are loading. Select an agent from the sidebar to start chatting."
-                      : "Please sign in to view and chat with your agents."}
-                  </p>
-                  {!isAuthenticated && (
-                    <button
-                      onClick={() => handleStartLogin()}
-                      className={`mt-4 inline-flex items-center px-4 py-2 bg-[${theme.colors.primary.main}] text-black text-sm rounded-lg hover:bg-[${theme.colors.primary.hover}] transition-colors`}
-                    >
-                      Sign In & Get Started
-                    </button>
-                  )}
-                </div>
-              )}
+                  Sign In & Get Started
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Footer */}
-      <Footer baseUrl={baseUrl} showConnectionStatus={true} />
+      <Footer
+        baseUrl={baseUrl}
+        showConnectionStatus={true}
+        onBaseUrlChange={handleBaseUrlChange}
+      />
     </div>
   );
 };

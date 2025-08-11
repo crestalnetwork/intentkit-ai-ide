@@ -4,6 +4,7 @@ import { showToast } from "../lib/utils/toast";
 import logger from "../lib/utils/logger";
 import theme from "../lib/utils/theme";
 import ContactSupport from "./ContactSupport";
+import BaseUrlSettings from "./BaseUrlSettings";
 import { AuthStatus, useAuth } from "@/context/AuthProvider";
 import { usePrivy } from "@privy-io/react-auth";
 import useWallet from "@/hooks/useWallet";
@@ -34,6 +35,7 @@ const Header: React.FC<HeaderProps> = ({
   const { user: privyUser, ready } = usePrivy();
 
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const [showBaseUrlSettings, setShowBaseUrlSettings] = useState(false);
   const { isAuthenticated, authStatus, handleStartLogin, handleDisconnect } =
     useAuth();
   const { displayAddress } = useWallet();
@@ -291,8 +293,7 @@ const Header: React.FC<HeaderProps> = ({
                       {onBaseUrlChange && (
                         <button
                           onClick={() => {
-                            // Toggle settings functionality - for now just show toast
-                            showToast.info("Settings panel coming soon!");
+                            setShowBaseUrlSettings(true);
                             setShowProfileDropdown(false);
                           }}
                           className="w-full flex items-center space-x-2 sm:space-x-3 px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-white hover:bg-[#d0ff16]/10 transition-colors"
@@ -316,7 +317,7 @@ const Header: React.FC<HeaderProps> = ({
                               d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                             />
                           </svg>
-                          <span>Settings</span>
+                          <span>API Settings</span>
                         </button>
                       )}
                       <div className="w-full px-3 sm:px-4 py-2 sm:py-3">
@@ -378,6 +379,15 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
+
+      {/* Base URL Settings Modal */}
+      {showBaseUrlSettings && onBaseUrlChange && (
+        <BaseUrlSettings
+          currentBaseUrl={baseUrl || ""}
+          onBaseUrlChange={onBaseUrlChange}
+          onClose={() => setShowBaseUrlSettings(false)}
+        />
+      )}
     </>
   );
 };

@@ -176,6 +176,35 @@ export interface AgentApiKeyResponse {
   doc_for_ai: string;
 }
 
+// Autonomous task types
+export interface AutonomousTask {
+  id: string;
+  name: string;
+  description?: string;
+  minutes?: number;
+  cron?: string;
+  prompt: string;
+  enabled: boolean;
+}
+
+export interface AutonomousTaskCreate {
+  name: string;
+  description?: string;
+  minutes?: number;
+  cron?: string;
+  prompt: string;
+  enabled?: boolean;
+}
+
+export interface AutonomousTaskUpdate {
+  name?: string;
+  description?: string;
+  minutes?: number;
+  cron?: string;
+  prompt?: string;
+  enabled?: boolean;
+}
+
 export const ClientEventEmitter = mitt();
 
 class ApiClient {

@@ -184,7 +184,7 @@ export interface AutonomousTask {
   minutes?: number;
   cron?: string;
   prompt: string;
-  enabled: boolean;
+  enabled?: boolean;
 }
 
 export interface AutonomousTaskCreate {

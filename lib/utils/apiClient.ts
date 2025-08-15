@@ -22,6 +22,34 @@ export interface AgentGenerateResponse {
   activated_skills?: Array<string>; // List of activated skill names
 }
 
+// LLM Model interface based on the provided API documentation
+export interface LLMModel {
+  id: string;
+  name: string;
+  provider: "openai" | "deepseek" | "xai" | "eternal" | "reigent" | "venice";
+  enabled: boolean;
+  input_price: string;
+  output_price: string;
+  price_level: number | null;
+  context_length: number;
+  output_length: number;
+  intelligence: number; // 1-5
+  speed: number; // 1-5
+  supports_image_input: boolean;
+  supports_skill_calls: boolean;
+  supports_structured_output: boolean;
+  has_reasoning: boolean;
+  supports_search: boolean;
+  supports_temperature: boolean;
+  supports_frequency_penalty: boolean;
+  supports_presence_penalty: boolean;
+  api_base: string | null;
+  timeout: number;
+  created_at: string;
+  updated_at: string;
+  provider_name: string;
+}
+
 // Types based on Nation API documentation
 export interface Agent {
   id?: string;
@@ -572,8 +600,8 @@ class ApiClient {
     return response.data;
   }
 
-  public async getLLMs(): Promise<any[]> {
-    const response = await this.client.get<any[]>(API_ENDPOINTS.LLMS);
+  public async getLLMs(): Promise<LLMModel[]> {
+    const response = await this.client.get<LLMModel[]>(API_ENDPOINTS.LLMS);
     return response.data;
   }
 

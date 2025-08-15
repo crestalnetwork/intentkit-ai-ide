@@ -61,7 +61,7 @@ export const API_ENDPOINTS = {
   USER_AGENTS: "/user/agents",
   USER_AGENT_BY_ID: (id: string) => `/user/agents/${id}`,
   SKILLS: "/skills",
-  LLMS: "/llms",
+  LLMS: "/metadata/llms",
   AGENT_SCHEMA: "/agent-schema",
   AGENT_API_KEY: (agentId: string) => `/agents/${agentId}/api-key`,
   AGENT_API_KEY_RESET: (agentId: string) => `/agents/${agentId}/api-key/reset`,

@@ -9,11 +9,12 @@ import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
 import AgentApiKeys from "./AgentApiKeys";
 import SkillsPanel from "./SkillsPanel";
+import JsonEditorPanel from "./JsonEditorPanel";
 import SidebarNavigation from "./agent-detail/SidebarNavigation";
 import AgentHeader from "./agent-detail/AgentHeader";
 import CDPWallet from "./agent-detail/CDPWallet";
 import SystemPrompts from "./agent-detail/SystemPrompts";
-import AdvancedConfiguration from "./agent-detail/AdvancedConfiguration";
+
 import SkillsSection from "./agent-detail/SkillsSection";
 import AutonomousTasks from "./agent-detail/AutonomousTasks";
 
@@ -24,19 +25,14 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
   agent,
   onToggleViewMode,
 }) => {
-  const [showRawConfig, setShowRawConfig] = useState<boolean>(false);
-  const [showEditMode, setShowEditMode] = useState<boolean>(false);
-  const [editedConfig, setEditedConfig] = useState<string>("");
-  const [isSaving, setIsSaving] = useState<boolean>(false);
-  const [saveResult, setSaveResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
-
   // Removed username and password state - using API client with Bearer token authentication
 
   // Skills panel state
   const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
+
+  // JSON editor panel state
+  const [showJsonEditorPanel, setShowJsonEditorPanel] =
+    useState<boolean>(false);
 
   // Sidebar navigation state
   const [activeSection, setActiveSection] = useState<string>("agent-header");
@@ -99,28 +95,6 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
     );
   };
 
-  const handleEditClick = () => {
-    setEditedConfig(JSON.stringify(agent, null, 2));
-    setShowEditMode(true);
-    setShowRawConfig(false);
-    setSaveResult(null);
-  };
-
-  const handleConfigChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedConfig(e.target.value);
-  };
-
-  const handleFormatJson = () => {
-    try {
-      const parsed = JSON.parse(editedConfig);
-      const formatted = JSON.stringify(parsed, null, 2);
-      setEditedConfig(formatted);
-      showToast.success("JSON formatted successfully!");
-    } catch (error) {
-      showToast.error("Invalid JSON format. Cannot format.");
-    }
-  };
-
   // Navigation sections for sidebar
   const sections = [
     {
@@ -181,25 +155,6 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
       ),
     },
     {
-      id: "advanced-config",
-      label: "Advanced Config",
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
-          />
-        </svg>
-      ),
-    },
-    {
       id: "skills-section",
       label: "Skills",
       icon: (
@@ -251,7 +206,26 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+            d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1721 9z"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "json-editor",
+      label: "Advanced Configuration",
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
           />
         </svg>
       ),
@@ -274,102 +248,6 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
       });
     }
     setActiveSection("skills-section");
-  };
-
-  const handleSaveConfig = async () => {
-    try {
-      setIsSaving(true);
-      setSaveResult(null);
-
-      // Validate and format JSON
-      let configObj;
-      try {
-        configObj = JSON.parse(editedConfig);
-        // Auto-format the JSON for better display
-        const formattedJson = JSON.stringify(configObj, null, 2);
-        setEditedConfig(formattedJson);
-      } catch (err) {
-        setSaveResult({
-          success: false,
-          message: "Invalid JSON format. Please check your configuration.",
-        });
-        setIsSaving(false);
-        return;
-      }
-
-      // Ensure required fields are present
-      const requiredFields = ["name", "purpose", "personality", "principles"];
-      const missingFields = requiredFields.filter(
-        (field) => !configObj[field] || configObj[field].trim() === ""
-      );
-
-      if (missingFields.length > 0) {
-        setSaveResult({
-          success: false,
-          message: `Missing required fields: ${missingFields.join(
-            ", "
-          )}. These fields are required by the API.`,
-        });
-        setIsSaving(false);
-        return;
-      }
-
-      // Use API client for consistent authentication
-      const response = await apiClient.updateAgent(agent.id!, configObj);
-
-      setSaveResult({
-        success: true,
-        message: "Agent updated successfully!",
-      });
-
-      showToast.success("Agent updated successfully!");
-
-      // Refresh the agent data if global function is available
-      if (
-        typeof window !== "undefined" &&
-        (window as any).refreshSelectedAgent
-      ) {
-        (window as any).refreshSelectedAgent();
-      }
-
-      // Add a small delay to show the success message
-      setTimeout(() => {
-        setShowEditMode(false);
-      }, 1500);
-    } catch (error: any) {
-      console.error("Error updating agent:", error);
-
-      let errorMessage = "Failed to update agent.";
-
-      if (axios.isAxiosError(error)) {
-        if (error.response?.status === 401) {
-          errorMessage = "Authentication failed. Please sign in again.";
-        } else if (error.response?.status === 400) {
-          errorMessage = `Bad request: ${
-            error.response.data?.detail || "Invalid data"
-          }`;
-        } else if (error.response?.status === 403) {
-          errorMessage = "Permission denied. You don't own this agent.";
-        } else if (error.response?.status === 404) {
-          errorMessage = "Agent not found.";
-        } else if (error.response?.status === 422) {
-          errorMessage = `Validation error: ${
-            error.response.data?.detail || "Invalid agent configuration"
-          }`;
-        } else if (error.response?.data?.detail) {
-          errorMessage = `Error: ${error.response.data.detail}`;
-        }
-      }
-
-      setSaveResult({
-        success: false,
-        message: errorMessage,
-      });
-
-      showToast.error(errorMessage);
-    } finally {
-      setIsSaving(false);
-    }
   };
 
   return (
@@ -417,7 +295,18 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
           <div className="space-y-6">
             {/* Agent Header */}
             <div id="agent-header">
-              <AgentHeader agent={agent} />
+              <AgentHeader
+                agent={agent}
+                onAgentUpdate={() => {
+                  // Refresh the agent data
+                  if (
+                    typeof window !== "undefined" &&
+                    (window as any).refreshSelectedAgent
+                  ) {
+                    (window as any).refreshSelectedAgent();
+                  }
+                }}
+              />
             </div>
 
             {/* CDP Wallet Information */}
@@ -428,11 +317,6 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
             {/* System Prompts */}
             <div id="system-prompts">
               <SystemPrompts agent={agent} />
-            </div>
-
-            {/* Advanced Configuration */}
-            <div id="advanced-config">
-              <AdvancedConfiguration agent={agent} />
             </div>
 
             {/* Skills Section */}
@@ -451,6 +335,88 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
             {/* Agent API Keys Section */}
             <div id="api-keys">
               <AgentApiKeys agent={agent} />
+            </div>
+
+            {/* JSON Configuration Editor */}
+            <div id="json-editor">
+              <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+                      Advanced Configuration
+                    </h3>
+                    <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+                      Edit the raw JSON configuration of your agent in a
+                      dedicated editor panel.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowJsonEditorPanel(true)}
+                    className="inline-flex items-center space-x-2 px-4 py-2 bg-[var(--color-warning)] text-[var(--color-text-on-primary)] rounded-lg hover:bg-[var(--color-neon-pink)] transition-all duration-200 font-medium shadow-lg hover-neon-glow-pink"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
+                    </svg>
+                    <span>Edit JSON</span>
+                  </button>
+                </div>
+
+                {/* Quick Preview */}
+                <div className="mt-6 p-4 bg-[var(--color-bg-tertiary)] border border-[var(--color-border-secondary)] rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
+                      Quick Preview
+                    </h4>
+                    <span className="text-xs text-[var(--color-text-muted)]">
+                      {Object.keys(agent).length} properties
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-[var(--color-text-secondary)]">
+                        Name:
+                      </span>
+                      <p className="text-[var(--color-text-primary)] font-medium truncate">
+                        {agent.name || "Not set"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--color-text-secondary)]">
+                        Model:
+                      </span>
+                      <p className="text-[var(--color-text-primary)] font-medium truncate">
+                        {agent.model || "Default"}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--color-text-secondary)]">
+                        Skills:
+                      </span>
+                      <p className="text-[var(--color-text-primary)] font-medium">
+                        {agent.skills ? Object.keys(agent.skills).length : 0}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-[var(--color-text-secondary)]">
+                        Status:
+                      </span>
+                      <p className="text-[var(--color-text-primary)] font-medium">
+                        {agent.id ? "Deployed" : "Local"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -477,6 +443,25 @@ const AgentDetail: React.FC<AgentDetailProps> = ({
               `Skill "${skillName}" configuration copied to clipboard!`
             );
             setShowSkillsPanel(false);
+          }}
+        />
+      )}
+
+      {/* JSON Editor Panel */}
+      {showJsonEditorPanel && (
+        <JsonEditorPanel
+          isVisible={showJsonEditorPanel}
+          onClose={() => setShowJsonEditorPanel(false)}
+          agent={agent}
+          startInEditMode={true}
+          onAgentUpdate={() => {
+            // Refresh the agent data
+            if (
+              typeof window !== "undefined" &&
+              (window as any).refreshSelectedAgent
+            ) {
+              (window as any).refreshSelectedAgent();
+            }
           }}
         />
       )}

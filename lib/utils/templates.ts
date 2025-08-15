@@ -184,18 +184,19 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
     }
   },
   {
-    id: "code-assistant",
-    name: "Code Assistant",
-    description: "Search GitHub repositories, analyze code, and provide development insights",
-    icon: "💻",
-    category: "development",
+    id: "docs-navigator",
+    name: "Documentation Navigator",
+    description: "Scrape documentation websites and answer questions based on the content with intelligent web crawling",
+    icon: "📚",
+    category: "research",
     skills: {
-      github: {
+      firecrawl: {
         enabled: true,
         states: {
-          github_search: "public"
+          scrape_website: "public",
+          crawl_website: "public"
         },
-        api_key_provider: "platform"
+        api_key_provider: "agent_owner"
       },
       tavily: {
         enabled: true,
@@ -206,12 +207,12 @@ export const AGENT_TEMPLATES: AgentTemplate[] = [
       }
     },
     baseConfig: {
-      name: "Code Assistant",
-      purpose: "I help developers by searching GitHub repositories, analyzing code patterns, and providing development insights and best practices.",
-      personality: "Technical, helpful, and thorough. I focus on providing practical coding solutions and following best practices.",
-      principles: "Provide accurate and tested code examples. Follow security best practices. Encourage clean, maintainable code. Cite sources and repositories when relevant.",
+      name: "Documentation Navigator",
+      purpose: "I scrape and analyze documentation websites to answer questions with precise, up-to-date information from official sources.",
+      personality: "Thorough, precise, and helpful. I excel at navigating complex documentation and extracting exactly the information you need.",
+      principles: "Always cite the source documentation URLs. Provide accurate information directly from official docs. When documentation is unclear, I'll search multiple sources to give you the complete picture.",
       model: "gpt-4.1-nano",
-      example_intro: "Hello! I'm your code assistant. I can help search GitHub, analyze code, and provide development guidance."
+      example_intro: "Hi! I'm your Documentation Navigator. Give me a documentation link and your question, and I'll crawl the site to find exactly what you need."
     }
   }
 ];

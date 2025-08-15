@@ -179,7 +179,7 @@ const JsonEditorPanel: React.FC<JsonEditorPanelProps> = ({
         message: errorMessage,
       });
 
-      showToast.error(errorMessage);
+      showToast.errorWithSupport(errorMessage);
     } finally {
       setIsSaving(false);
     }

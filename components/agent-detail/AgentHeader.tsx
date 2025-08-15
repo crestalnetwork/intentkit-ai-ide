@@ -74,7 +74,7 @@ const AgentHeader: React.FC<AgentHeaderProps> = ({ agent, onAgentUpdate }) => {
       }
     } catch (error) {
       console.error("Failed to update model:", error);
-      showToast.error("Failed to update model");
+      showToast.errorWithSupport("Failed to update model");
     } finally {
       setIsUpdatingModel(false);
     }

@@ -142,7 +142,7 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
       window.location.reload();
     } catch (error) {
       console.error("Failed to save task:", error);
-      showToast.error("Failed to save task. Please try again.");
+      showToast.errorWithSupport("Failed to save task. Please try again.");
     }
   };
 

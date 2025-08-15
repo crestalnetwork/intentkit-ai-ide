@@ -134,7 +134,7 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
       // Fallback to the summary data if detailed fetch fails
       onAgentSelect(agent);
       onClose();
-      showToast.error("Could not load complete agent data");
+      showToast.errorWithSupport("Could not load complete agent data");
     }
   };
 

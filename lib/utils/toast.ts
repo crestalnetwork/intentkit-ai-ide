@@ -21,6 +21,15 @@ export const showToast = {
     return toast.error(message, { ...defaultOptions, ...options });
   },
 
+  errorWithSupport: (message: string, options?: ToastOptions) => {
+    const messageWithSupport = `${message}. Need help? Contact support@crestal.network`;
+    return toast.error(messageWithSupport, { 
+      ...defaultOptions, 
+      autoClose: 5000, // Longer display time for support messages
+      ...options 
+    });
+  },
+
   info: (message: string, options?: ToastOptions) => {
     return toast.info(message, { ...defaultOptions, ...options });
   },

@@ -108,7 +108,7 @@ const SystemPrompts: React.FC<SystemPromptsProps> = ({ agent }) => {
         message: errorMessage,
       });
 
-      showToast.error(errorMessage);
+      showToast.errorWithSupport(errorMessage);
     } finally {
       setIsPromptsSaving(false);
     }

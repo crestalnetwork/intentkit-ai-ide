@@ -107,7 +107,9 @@ const AgentsList: React.FC<AgentsListProps> = ({
       if (err.response?.status === 401) {
         showToast.error("Authentication expired. Please sign in again.");
       } else {
-        showToast.error(`Failed to load your agents: ${errorMessage}`);
+        showToast.errorWithSupport(
+          `Failed to load your agents: ${errorMessage}`
+        );
       }
     } finally {
       setLoading(false);

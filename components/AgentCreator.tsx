@@ -362,7 +362,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       };
       setMessages((prev) => [...prev, errorMsg]);
 
-      showToast.error(errorMessage);
+      showToast.errorWithSupport(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -495,7 +495,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         errorMessage = error.message;
       }
 
-      showToast.error(errorMessage);
+      showToast.errorWithSupport(errorMessage);
 
       const failureMessage: ConversationMessage = {
         role: "assistant",

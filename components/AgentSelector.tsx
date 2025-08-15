@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Agent } from "../lib/utils/apiClient";
 import apiClient from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
+import { showToast } from "../lib/utils/toast";
 
 interface AgentSelectorProps {
   baseUrl: string;
@@ -104,14 +105,37 @@ const AgentSelector: React.FC<AgentSelectorProps> = ({
         agent.description.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const handleAgentSelect = (agent: Agent) => {
+  const handleAgentSelect = async (agent: Agent) => {
     logger.info(
-      "Agent selected",
+      "Agent selected, fetching complete data",
       { agentId: agent.id, agentName: agent.name },
       "AgentSelector.handleAgentSelect"
     );
-    onAgentSelect(agent);
-    onClose();
+
+    try {
+      // Fetch complete agent data using the single agent endpoint
+      const completeAgent = await apiClient.getUserAgent(agent.id!);
+      logger.info(
+        "Complete agent data loaded",
+        {
+          agentId: completeAgent.id,
+          hasAutonomous: !!completeAgent.autonomous,
+        },
+        "AgentSelector.handleAgentSelect"
+      );
+      onAgentSelect(completeAgent);
+      onClose();
+    } catch (error: any) {
+      logger.error(
+        "Failed to load complete agent data",
+        { agentId: agent.id, error: error.message },
+        "AgentSelector.handleAgentSelect"
+      );
+      // Fallback to the summary data if detailed fetch fails
+      onAgentSelect(agent);
+      onClose();
+      showToast.errorWithSupport("Could not load complete agent data");
+    }
   };
 
   if (!isOpen) return null;

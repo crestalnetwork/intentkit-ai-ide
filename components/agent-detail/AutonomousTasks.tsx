@@ -1,28 +1,42 @@
-import React from "react";
-// import { showToast } from "../../lib/utils/toast";
-// import apiClient, {
-//   AutonomousTask,
-//   AutonomousTaskCreate,
-//   Agent,
-// } from "../../lib/utils/apiClient";
-// import AutonomousTaskModal from "../AutonomousTaskModal";
-// import ConfirmationModal from "../ConfirmationModal";
+import React, { useState } from "react";
+import { showToast } from "../../lib/utils/toast";
+import apiClient, {
+  AutonomousTask,
+  AutonomousTaskCreate,
+  Agent,
+  ChatMessage,
+  PaginatedResponse,
+} from "../../lib/utils/apiClient";
+import AutonomousTaskModal from "../AutonomousTaskModal";
+import ConfirmationModal from "../ConfirmationModal";
+import ExecutionHistoryPanel from "../ExecutionHistoryPanel";
 
 interface AutonomousTasksProps {
-  agent: any; // Temporarily changed from Agent to any
+  agent: Agent;
 }
 
 const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
-  // All autonomous task functionality is commented out
-  /*
   const [showTaskModal, setShowTaskModal] = useState<boolean>(false);
   const [editingTask, setEditingTask] = useState<AutonomousTask | null>(null);
   const [taskModalMode, setTaskModalMode] = useState<"add" | "edit">("add");
-  const [autonomousTab, setAutonomousTab] = useState<"overview" | "history">(
-    "overview"
-  );
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [taskToDelete, setTaskToDelete] = useState<AutonomousTask | null>(null);
+  const [taskLogs, setTaskLogs] = useState<{
+    [taskId: string]: ChatMessage[];
+  }>({});
+  const [loadingLogs, setLoadingLogs] = useState<{
+    [taskId: string]: boolean;
+  }>({});
+  const [allExecutionHistory, setAllExecutionHistory] = useState<ChatMessage[]>(
+    []
+  );
+  const [loadingAllHistory, setLoadingAllHistory] = useState(false);
+  const [selectedTaskForHistory, setSelectedTaskForHistory] = useState<
+    string | null
+  >(null);
+  const [showExecutionHistoryPanel, setShowExecutionHistoryPanel] =
+    useState<boolean>(false);
 
   // Autonomous task handlers
   const handleAddTask = () => {
@@ -49,19 +63,14 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
 
       await apiClient.updateAgent(agent.id!, updatedAgent);
       showToast.success(
-        `Task ${task.enabled ?? false ? "disabled" : "enabled"} successfully!`
+        `Task "${task.name}" ${task.enabled ? "disabled" : "enabled"}`
       );
 
-      // Refresh the agent data
-      if (
-        typeof window !== "undefined" &&
-        (window as any).refreshSelectedAgent
-      ) {
-        (window as any).refreshSelectedAgent();
-      }
-    } catch (error: any) {
-      console.error("Error toggling task:", error);
-      showToast.error("Failed to toggle task. Please try again.");
+      // Trigger a page refresh to update the agent data
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to toggle task:", error);
+      showToast.error("Failed to update task. Please try again.");
     }
   };
 
@@ -70,7 +79,7 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteTask = async () => {
+  const handleConfirmDelete = async () => {
     if (!taskToDelete) return;
 
     try {
@@ -78,144 +87,460 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
         ...agent,
         autonomous:
           agent.autonomous?.filter(
-            (t: AutonomousTask) => t.id !== taskToDelete?.id
+            (t: AutonomousTask) => t.id !== taskToDelete.id
           ) || [],
       };
 
       await apiClient.updateAgent(agent.id!, updatedAgent);
-      showToast.success("Task deleted successfully!");
+      showToast.success(`Task "${taskToDelete.name}" deleted`);
 
-      // Refresh the agent data
-      if (
-        typeof window !== "undefined" &&
-        (window as any).refreshSelectedAgent
-      ) {
-        (window as any).refreshSelectedAgent();
-      }
-    } catch (error: any) {
-      console.error("Error deleting task:", error);
+      // Trigger a page refresh to update the agent data
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to delete task:", error);
       showToast.error("Failed to delete task. Please try again.");
     } finally {
+      setShowDeleteConfirm(false);
       setTaskToDelete(null);
     }
   };
 
   const handleTaskSave = async (taskData: AutonomousTaskCreate) => {
     try {
-      let updatedTasks;
+      let updatedAutonomous = agent.autonomous || [];
 
       if (taskModalMode === "add") {
-        // Generate a simple ID for new tasks
-        const newTask = {
+        // Generate ID for new task
+        const id = `task-${Date.now()}`;
+        const newTask: AutonomousTask = {
+          id,
           ...taskData,
-          id: `task-${Date.now()}`,
-          enabled: taskData.enabled !== undefined ? taskData.enabled : true,
         };
-        updatedTasks = [...(agent.autonomous || []), newTask];
-      } else {
+        updatedAutonomous = [...updatedAutonomous, newTask];
+        showToast.success(`Task "${taskData.name}" created`);
+      } else if (editingTask) {
         // Update existing task
         if (!editingTask) {
           throw new Error("No task selected for editing");
         }
-        updatedTasks =
-          agent.autonomous?.map((t: AutonomousTask) =>
-            t.id === editingTask.id ? { ...t, ...taskData } : t
-          ) || [];
+        updatedAutonomous = updatedAutonomous.map((t: AutonomousTask) =>
+          t.id === editingTask.id ? { ...editingTask, ...taskData } : t
+        );
+        showToast.success(`Task "${taskData.name}" updated`);
       }
 
       const updatedAgent = {
         ...agent,
-        autonomous: updatedTasks,
+        autonomous: updatedAutonomous,
       };
 
       await apiClient.updateAgent(agent.id!, updatedAgent);
-      showToast.success(
-        `Task ${taskModalMode === "add" ? "created" : "updated"} successfully!`
-      );
-
       setShowTaskModal(false);
       setEditingTask(null);
 
-      // Refresh the agent data
-      if (
-        typeof window !== "undefined" &&
-        (window as any).refreshSelectedAgent
-      ) {
-        (window as any).refreshSelectedAgent();
-      }
-    } catch (error: any) {
-      console.error("Error saving task:", error);
-      showToast.error(
-        `Failed to ${
-          taskModalMode === "add" ? "create" : "update"
-        } task. Please try again.`
-      );
+      // Trigger a page refresh to update the agent data
+      window.location.reload();
+    } catch (error) {
+      console.error("Failed to save task:", error);
+      showToast.errorWithSupport("Failed to save task. Please try again.");
     }
   };
-  */
+
+  const loadTaskLogs = async (taskId: string) => {
+    if (loadingLogs[taskId] || taskLogs[taskId]) {
+      return; // Already loading or loaded
+    }
+
+    setLoadingLogs((prev) => ({ ...prev, [taskId]: true }));
+
+    try {
+      const chatId = `autonomous-${taskId}`;
+      const response: PaginatedResponse<ChatMessage> =
+        await apiClient.getChatMessages(agent.id!, chatId, { limit: 50 });
+
+      setTaskLogs((prev) => ({ ...prev, [taskId]: response.data }));
+    } catch (error) {
+      console.error(`Failed to load logs for task ${taskId}:`, error);
+      // Don't show error toast as logs might not exist yet for new tasks
+      setTaskLogs((prev) => ({ ...prev, [taskId]: [] }));
+    } finally {
+      setLoadingLogs((prev) => ({ ...prev, [taskId]: false }));
+    }
+  };
+
+  const loadAllExecutionHistory = async () => {
+    if (loadingAllHistory) return;
+
+    setLoadingAllHistory(true);
+    try {
+      const allMessages: ChatMessage[] = [];
+
+      // Load chat messages for each autonomous task
+      for (const task of autonomousTasks) {
+        try {
+          const chatId = `autonomous-${task.id}`;
+          const response: PaginatedResponse<ChatMessage> =
+            await apiClient.getChatMessages(agent.id!, chatId, { limit: 100 });
+
+          // Add task context to each message for display
+          const messagesWithTaskInfo = response.data.map((msg) => ({
+            ...msg,
+            _taskInfo: {
+              taskId: task.id,
+              taskName: task.name,
+              taskPrompt: task.prompt,
+            },
+          }));
+
+          allMessages.push(...messagesWithTaskInfo);
+        } catch (error) {
+          console.error(`Failed to load history for task ${task.id}:`, error);
+        }
+      }
+
+      // Sort messages by creation date (newest first)
+      allMessages.sort(
+        (a, b) =>
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+
+      setAllExecutionHistory(allMessages);
+    } catch (error) {
+      console.error("Failed to load execution history:", error);
+      showToast.error("Failed to load execution history");
+    } finally {
+      setLoadingAllHistory(false);
+    }
+  };
+
+  const formatSchedule = (task: AutonomousTask) => {
+    if (task.minutes) {
+      return `Every ${task.minutes} minutes`;
+    } else if (task.cron) {
+      return `Cron: ${task.cron}`;
+    }
+    return "No schedule";
+  };
+
+  const formatLastRun = (taskId: string) => {
+    const logs = taskLogs[taskId];
+    if (!logs || logs.length === 0) {
+      return "Never";
+    }
+
+    const lastMessage = logs[logs.length - 1];
+    return new Date(lastMessage.created_at).toLocaleString();
+  };
+
+  const autonomousTasks = agent.autonomous || [];
 
   return (
-    <>
-      <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] mb-4">
-        {/* Header */}
-        <div className="p-4 border-b border-[var(--color-border-primary)]">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <h4 className="text-sm font-semibold text-[var(--color-text-primary)] flex items-center">
-                <svg
-                  className="w-4 h-4 mr-2 text-[var(--color-neon-purple)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-                Autonomous Tasks
-              </h4>
-            </div>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-xl font-semibold text-[var(--color-text-primary)] mb-1">
+            Autonomous Tasks
+          </h3>
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Configure automated tasks that run on a schedule
+          </p>
         </div>
-
-        {/* Content */}
-        <div className="p-4">
-          <div className="text-center py-12">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-16 h-16 bg-[var(--color-bg-tertiary)] border-2 border-dashed border-[var(--color-border-primary)] rounded-xl flex items-center justify-center">
-                <svg
-                  className="w-8 h-8 text-[var(--color-text-tertiary)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-base font-medium text-[var(--color-text-secondary)] mb-2">
-                  Autonomous Tasks Feature Under Development
-                </p>
-                <p className="text-sm text-[var(--color-text-tertiary)] max-w-md">
-                  This feature is currently being developed and will be
-                  available soon.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <button
+          onClick={handleAddTask}
+          className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-neon-purple)] text-[var(--color-text-on-primary)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-neon-purple-bright)] neon-glow-purple transition-all duration-200"
+        >
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
+          <span>Add Task</span>
+        </button>
       </div>
 
-      {/* All modals and functionality commented out */}
-      {/*
+      {/* Task List */}
+      <div className="space-y-4">
+        {autonomousTasks.length === 0 ? (
+          <div className="text-center py-12 bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)]">
+            <div className="max-w-md mx-auto">
+              <svg
+                className="w-12 h-12 mx-auto text-[var(--color-text-muted)] mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <h4 className="text-lg font-medium text-[var(--color-text-primary)] mb-2">
+                No Autonomous Tasks
+              </h4>
+              <p className="text-[var(--color-text-secondary)] mb-4">
+                Create your first autonomous task to automate agent actions on a
+                schedule.
+              </p>
+              <button
+                onClick={handleAddTask}
+                className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-neon-purple)] text-[var(--color-text-on-primary)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-neon-purple-bright)] neon-glow-purple transition-all duration-200"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
+                </svg>
+                <span>Add Your First Task</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-4">
+            {autonomousTasks.map((task: AutonomousTask) => (
+              <div
+                key={task.id}
+                className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4"
+              >
+                <div className="flex items-start justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h4 className="text-lg font-medium text-[var(--color-text-primary)] truncate">
+                        {task.name}
+                      </h4>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          task.enabled ?? false
+                            ? "bg-[var(--color-neon-green-subtle)] text-[var(--color-neon-green)] border border-[var(--color-neon-green-border)]"
+                            : "bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] border border-[var(--color-border-secondary)]"
+                        }`}
+                      >
+                        {task.enabled ?? false ? "Enabled" : "Disabled"}
+                      </span>
+                    </div>
+
+                    {task.description && (
+                      <p className="text-sm text-[var(--color-text-secondary)] mb-3">
+                        {task.description}
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+                      <div>
+                        <span className="text-[var(--color-text-tertiary)] block">
+                          Schedule:
+                        </span>
+                        <span className="text-[var(--color-text-primary)] font-mono">
+                          {formatSchedule(task)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[var(--color-text-tertiary)] block">
+                          Last Run:
+                        </span>
+                        <span className="text-[var(--color-text-primary)]">
+                          {formatLastRun(task.id)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[var(--color-text-tertiary)] block">
+                          Actions:
+                        </span>
+                        <div className="flex items-center space-x-2 mt-1">
+                          <button
+                            onClick={() => loadTaskLogs(task.id)}
+                            disabled={loadingLogs[task.id]}
+                            className="text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="View Logs"
+                          >
+                            {loadingLogs[task.id] ? (
+                              <svg
+                                className="w-4 h-4 animate-spin"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                                />
+                              </svg>
+                            ) : (
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                />
+                              </svg>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Show logs if loaded */}
+                    {taskLogs[task.id] && (
+                      <div className="mt-4 border-t border-[var(--color-border-secondary)] pt-4">
+                        <h5 className="text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                          Recent Execution Logs ({taskLogs[task.id].length})
+                        </h5>
+                        {taskLogs[task.id].length === 0 ? (
+                          <p className="text-sm text-[var(--color-text-tertiary)]">
+                            No execution logs found for this task.
+                          </p>
+                        ) : (
+                          <div className="space-y-2 max-h-40 overflow-y-auto">
+                            {taskLogs[task.id].slice(-5).map((log) => (
+                              <div
+                                key={log.id}
+                                className="bg-[var(--color-bg-tertiary)] rounded p-2 text-xs"
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-[var(--color-text-secondary)]">
+                                    {new Date(log.created_at).toLocaleString()}
+                                  </span>
+                                  <span
+                                    className={`px-2 py-0.5 rounded text-xs ${
+                                      log.author_type === "system"
+                                        ? "bg-[var(--color-neon-red-subtle)] text-[var(--color-neon-red)]"
+                                        : "bg-[var(--color-neon-green-subtle)] text-[var(--color-neon-green)]"
+                                    }`}
+                                  >
+                                    {log.author_type}
+                                  </span>
+                                </div>
+                                <p className="text-[var(--color-text-primary)] line-clamp-2">
+                                  {log.message}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center space-x-2 ml-4">
+                    <button
+                      onClick={() => handleEditTask(task)}
+                      className="px-3 py-2 text-sm text-[var(--color-neon-blue)] border border-[var(--color-border-secondary)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-blue-border)] transition-all duration-200"
+                    >
+                      Edit
+                    </button>
+
+                    <button
+                      onClick={() => handleDeleteTask(task)}
+                      className="px-3 py-2 text-sm text-[var(--color-neon-red)] border border-[var(--color-border-secondary)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-red-border)] transition-all duration-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
+
+                {/* Execution History Button */}
+                <div className="mt-4 pt-4 border-t border-[var(--color-border-secondary)]">
+                  <button
+                    onClick={() => {
+                      setSelectedTaskForHistory(task.id);
+                      loadAllExecutionHistory();
+                      setShowExecutionHistoryPanel(true);
+                    }}
+                    className="w-full inline-flex items-center justify-center space-x-2 px-4 py-3 bg-[var(--color-neon-cyan)] text-[var(--color-text-on-primary)] rounded-lg hover:bg-[var(--color-neon-cyan-bright)] transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+                    title="View Execution History for this task"
+                  >
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    <span>View Execution History</span>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                  </button>
+                </div>
+
+                {/* Task Prompt Preview */}
+                <div className="mt-4 pt-4 border-t border-[var(--color-border-secondary)]">
+                  <details className="group">
+                    <summary className="cursor-pointer text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors duration-200 list-none">
+                      <div className="flex items-center space-x-2">
+                        <svg
+                          className="w-4 h-4 transform group-open:rotate-90 transition-transform duration-200"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9 5l7 7-7 7"
+                          />
+                        </svg>
+                        <span>View Task Prompt</span>
+                      </div>
+                    </summary>
+                    <div className="mt-3 p-3 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border-secondary)]">
+                      <pre className="text-sm text-[var(--color-text-primary)] whitespace-pre-wrap break-words">
+                        {task.prompt}
+                      </pre>
+                    </div>
+                  </details>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Task Modal */}
       <AutonomousTaskModal
         isOpen={showTaskModal}
         onClose={() => {
@@ -227,23 +552,32 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
         existingTask={editingTask}
       />
 
+      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={() => {
           setShowDeleteConfirm(false);
           setTaskToDelete(null);
         }}
-        onConfirm={confirmDeleteTask}
-        title="Delete Task"
-        message={`Are you sure you want to delete the task "${
-          taskToDelete?.name || taskToDelete?.id
-        }"?`}
-        confirmText="Delete"
+        onConfirm={handleConfirmDelete}
+        title="Delete Autonomous Task"
+        message={`Are you sure you want to delete the task "${taskToDelete?.name}"? This action cannot be undone.`}
+        confirmText="Delete Task"
         cancelText="Cancel"
         type="danger"
       />
-      */}
-    </>
+
+      {/* Execution History Panel */}
+      <ExecutionHistoryPanel
+        isVisible={showExecutionHistoryPanel}
+        onClose={() => setShowExecutionHistoryPanel(false)}
+        executionHistory={allExecutionHistory}
+        autonomousTasks={autonomousTasks}
+        selectedTaskId={selectedTaskForHistory}
+        onTaskSelect={setSelectedTaskForHistory}
+        isLoading={loadingAllHistory}
+      />
+    </div>
   );
 };
 

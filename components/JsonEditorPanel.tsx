@@ -1,12 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import SyntaxHighlighter from "react-syntax-highlighter";
 import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
-import json from "react-syntax-highlighter/dist/cjs/languages/hljs/json";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
-
-// Register the json language
-SyntaxHighlighter.registerLanguage("json", json);
 
 interface JsonEditorPanelProps {
   isVisible: boolean;

@@ -267,151 +267,6 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
         </button>
       </div>
 
-      {/* Agent Context Information */}
-      <div className="bg-[var(--color-bg-card)] rounded-lg border border-[var(--color-border-primary)] p-4">
-        <h4 className="text-sm font-medium text-[var(--color-text-primary)] mb-3 flex items-center">
-          <svg
-            className="w-4 h-4 mr-2 text-[var(--color-neon-blue)]"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-            />
-          </svg>
-          Agent Context for Autonomous Tasks
-        </h4>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Agent Basic Info */}
-          <div>
-            <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-2">
-              Agent Information
-            </h5>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center space-x-2">
-                <span className="text-[var(--color-text-secondary)]">
-                  Name:
-                </span>
-                <span className="text-[var(--color-text-primary)] font-medium">
-                  {agent.name}
-                </span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-[var(--color-text-secondary)]">
-                  Model:
-                </span>
-                <span className="text-[var(--color-text-primary)] font-mono text-xs bg-[var(--color-bg-tertiary)] px-2 py-1 rounded">
-                  {agent.model || "gpt-4o-mini"}
-                </span>
-              </div>
-              {agent.temperature !== undefined && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-[var(--color-text-secondary)]">
-                    Temperature:
-                  </span>
-                  <span className="text-[var(--color-text-primary)]">
-                    {agent.temperature}
-                  </span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Agent Prompt */}
-          <div>
-            <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-2">
-              System Prompt
-            </h5>
-            <details className="group">
-              <summary className="cursor-pointer text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors duration-200 list-none">
-                <div className="flex items-center space-x-2">
-                  <svg
-                    className="w-4 h-4 transform group-open:rotate-90 transition-transform duration-200"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  <span>View Agent Prompt</span>
-                </div>
-              </summary>
-              <div className="mt-3 p-3 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border-secondary)] max-h-32 overflow-y-auto">
-                <pre className="text-xs text-[var(--color-text-primary)] whitespace-pre-wrap break-words">
-                  {agent.prompt ||
-                    agent.purpose ||
-                    "No system prompt configured"}
-                </pre>
-              </div>
-            </details>
-          </div>
-        </div>
-
-        {/* Additional Prompt Info */}
-        {agent.prompt_append && (
-          <div className="mt-4 pt-4 border-t border-[var(--color-border-secondary)]">
-            <h5 className="text-xs font-medium text-[var(--color-text-tertiary)] mb-2">
-              Additional Prompt
-            </h5>
-            <details className="group">
-              <summary className="cursor-pointer text-sm text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors duration-200 list-none">
-                <div className="flex items-center space-x-2">
-                  <svg
-                    className="w-4 h-4 transform group-open:rotate-90 transition-transform duration-200"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                  <span>View Additional Prompt</span>
-                </div>
-              </summary>
-              <div className="mt-3 p-3 bg-[var(--color-bg-tertiary)] rounded border border-[var(--color-border-secondary)] max-h-32 overflow-y-auto">
-                <pre className="text-xs text-[var(--color-text-primary)] whitespace-pre-wrap break-words">
-                  {agent.prompt_append}
-                </pre>
-              </div>
-            </details>
-          </div>
-        )}
-
-        <div className="mt-3 pt-3 border-t border-[var(--color-border-secondary)]">
-          <p className="text-xs text-[var(--color-text-tertiary)]">
-            <svg
-              className="w-3 h-3 inline mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-            Autonomous tasks will execute with this agent's configuration and
-            prompt context.
-          </p>
-        </div>
-      </div>
-
       {/* Task List */}
       <div className="space-y-4">
         {autonomousTasks.length === 0 ? (
@@ -595,85 +450,17 @@ const AutonomousTasks: React.FC<AutonomousTasksProps> = ({ agent }) => {
                   {/* Actions */}
                   <div className="flex items-center space-x-2 ml-4">
                     <button
-                      onClick={() => handleToggleTask(task)}
-                      className={`p-2 rounded transition-all duration-200 ${
-                        task.enabled ?? false
-                          ? "text-[var(--color-neon-orange)] hover:text-[var(--color-neon-orange-bright)] hover:bg-[var(--color-neon-orange-subtle)]"
-                          : "text-[var(--color-neon-green)] hover:text-[var(--color-neon-green-bright)] hover:bg-[var(--color-neon-green-subtle)]"
-                      }`}
-                      title={
-                        task.enabled ?? false ? "Disable Task" : "Enable Task"
-                      }
-                    >
-                      {task.enabled ?? false ? (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                      ) : (
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8a2 2 0 002-2V7a2 2 0 00-2-2H8a2 2 0 00-2 2v5a2 2 0 002 2z"
-                          />
-                        </svg>
-                      )}
-                    </button>
-
-                    <button
                       onClick={() => handleEditTask(task)}
-                      className="p-2 text-[var(--color-neon-blue)] hover:text-[var(--color-neon-blue-bright)] hover:bg-[var(--color-neon-blue-subtle)] rounded transition-all duration-200"
-                      title="Edit Task"
+                      className="px-3 py-2 text-sm text-[var(--color-neon-blue)] border border-[var(--color-border-secondary)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-blue-border)] transition-all duration-200"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
+                      Edit
                     </button>
 
                     <button
                       onClick={() => handleDeleteTask(task)}
-                      className="p-2 text-[var(--color-neon-red)] hover:text-[var(--color-neon-red-bright)] hover:bg-[var(--color-neon-red-subtle)] rounded transition-all duration-200"
-                      title="Delete Task"
+                      className="px-3 py-2 text-sm text-[var(--color-neon-red)] border border-[var(--color-border-secondary)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-red-border)] transition-all duration-200"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
+                      Delete
                     </button>
                   </div>
                 </div>

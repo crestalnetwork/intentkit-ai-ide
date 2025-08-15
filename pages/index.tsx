@@ -63,13 +63,25 @@ const Home: React.FC = (): JSX.Element => {
 
       const response = await apiClient.getUserAgents({ limit: 1 });
       if (response.data.length > 0) {
-        const firstAgent = response.data[0];
+        const firstAgentId = response.data[0].id;
         logger.info(
-          "Setting first available agent",
-          { agentId: firstAgent.id, agentName: firstAgent.name },
+          "Found first available agent, fetching complete data",
+          { agentId: firstAgentId, agentName: response.data[0].name },
           "Home.loadFirstAvailableAgent"
         );
-        setSelectedAgent(firstAgent);
+
+        // Fetch complete agent data using the single agent endpoint
+        const completeAgent = await apiClient.getUserAgent(firstAgentId!);
+        setSelectedAgent(completeAgent);
+
+        logger.info(
+          "Complete agent data loaded",
+          {
+            agentId: completeAgent.id,
+            hasAutonomous: !!completeAgent.autonomous,
+          },
+          "Home.loadFirstAvailableAgent"
+        );
       }
     } catch (error: any) {
       logger.error(

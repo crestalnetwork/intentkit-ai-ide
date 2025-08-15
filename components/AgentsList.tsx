@@ -123,9 +123,9 @@ const AgentsList: React.FC<AgentsListProps> = ({
     fetchAgents();
   };
 
-  const handleAgentClick = (agent: Agent) => {
+  const handleAgentClick = async (agent: Agent) => {
     logger.info(
-      "Agent selected",
+      "Agent selected, fetching complete data",
       {
         agentId: agent.id,
         agentName: agent.name,
@@ -133,7 +133,29 @@ const AgentsList: React.FC<AgentsListProps> = ({
       },
       "AgentsList.handleAgentClick"
     );
-    onAgentSelect(agent);
+
+    try {
+      // Fetch complete agent data using the single agent endpoint
+      const completeAgent = await apiClient.getUserAgent(agent.id!);
+      logger.info(
+        "Complete agent data loaded",
+        {
+          agentId: completeAgent.id,
+          hasAutonomous: !!completeAgent.autonomous,
+        },
+        "AgentsList.handleAgentClick"
+      );
+      onAgentSelect(completeAgent);
+    } catch (error: any) {
+      logger.error(
+        "Failed to load complete agent data",
+        { agentId: agent.id, error: error.message },
+        "AgentsList.handleAgentClick"
+      );
+      // Fallback to the summary data if detailed fetch fails
+      onAgentSelect(agent);
+      showToast.error("Could not load complete agent data");
+    }
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

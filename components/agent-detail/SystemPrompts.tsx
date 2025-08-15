@@ -38,11 +38,27 @@ const SystemPrompts: React.FC<SystemPromptsProps> = ({ agent }) => {
       setPromptsSaveResult(null);
 
       // Create updated agent object with new prompts
+      // Ensure autonomous tasks have required fields to avoid validation errors
+      const cleanedAutonomous = agent.autonomous
+        ? agent.autonomous.map((task: any) => ({
+            ...task,
+            // Ensure required fields are present
+            name: task.name || "Untitled Task",
+            prompt: task.prompt || "No prompt specified",
+            // Keep optional fields if they exist
+            ...(task.description && { description: task.description }),
+            ...(task.minutes && { minutes: task.minutes }),
+            ...(task.cron && { cron: task.cron }),
+            ...(task.enabled !== undefined && { enabled: task.enabled }),
+          }))
+        : [];
+
       const updatedAgent = {
         ...agent,
         purpose: editedPrompts.purpose,
         personality: editedPrompts.personality,
         principles: editedPrompts.principles,
+        autonomous: cleanedAutonomous,
       };
 
       // Use the same API call as the JSON editor
@@ -92,7 +108,7 @@ const SystemPrompts: React.FC<SystemPromptsProps> = ({ agent }) => {
         message: errorMessage,
       });
 
-      showToast.error(errorMessage);
+      showToast.errorWithSupport(errorMessage);
     } finally {
       setIsPromptsSaving(false);
     }

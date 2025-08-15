@@ -157,7 +157,7 @@ const Header: React.FC<HeaderProps> = ({
             <div className="flex items-center space-x-2">
               <Link
                 href="/"
-                className="w-6 h-6 sm:w-8 sm:h-8 bg-transparent rounded flex items-center justify-center p-1 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
+                className="w-6 h-6 sm:w-12 sm:h-12 bg-transparent rounded flex items-center justify-center p-0 hover:bg-white/10 transition-colors duration-200 cursor-pointer"
               >
                 <img
                   src="/images/logo.png"

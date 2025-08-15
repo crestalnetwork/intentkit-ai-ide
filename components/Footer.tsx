@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { SOCIAL_LINKS } from "../lib/utils/config";
 import theme from "../lib/utils/theme";
 import BaseUrlSettings from "./BaseUrlSettings";
+import { showToast } from "../lib/utils/toast";
 
 interface FooterProps {
   baseUrl?: string;
@@ -95,7 +96,7 @@ const Footer: React.FC<FooterProps> = ({
   return (
     <footer className="bg-[#161b22] border-t border-[#30363d] py-1">
       <div className="max-w-full mx-auto px-2 sm:px-4 flex flex-col sm:flex-row justify-between items-center space-y-1 sm:space-y-0">
-        {/* Left side - Social Links */}
+        {/* Left side - Social Links and Support */}
         <div className="flex items-center space-x-1 sm:space-x-3 order-2 sm:order-1">
           <p className="text-xs text-[#8b949e] mr-1 sm:mr-2 hidden sm:block">
             IntentKit AI
@@ -114,6 +115,48 @@ const Footer: React.FC<FooterProps> = ({
               </a>
             ))}
           </div>
+
+          {/* Support Contact */}
+          <div className="border-l border-[#30363d] pl-2 sm:pl-3 ml-1 sm:ml-2">
+            <button
+              onClick={async () => {
+                const email = SOCIAL_LINKS.EMAIL;
+                try {
+                  await navigator.clipboard.writeText(email);
+                  showToast.success(`Copied ${email} to clipboard`);
+                } catch (error) {
+                  // Fallback for browsers that don't support clipboard API
+                  const textArea = document.createElement("textarea");
+                  textArea.value = email;
+                  document.body.appendChild(textArea);
+                  textArea.select();
+                  document.execCommand("copy");
+                  document.body.removeChild(textArea);
+                  showToast.success(`Copied ${email} to clipboard`);
+                }
+              }}
+              className="inline-flex items-center space-x-1 text-xs text-[#8b949e] hover:text-[var(--color-neon-cyan)] transition-colors duration-200 cursor-pointer"
+              title="Click to copy support email"
+            >
+              <svg
+                className="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                />
+              </svg>
+              <span className="hidden sm:inline">Get Help:</span>
+              <span className="font-medium text-[var(--color-neon-cyan)]">
+                support@crestal.network
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* Right side - Connection Status */}
@@ -122,9 +165,9 @@ const Footer: React.FC<FooterProps> = ({
             onClick={() => onBaseUrlChange && setShowBaseUrlSettings(true)}
             disabled={!onBaseUrlChange}
             className={`flex items-center space-x-1 sm:space-x-2 text-xs text-[#d0ff16] order-1 sm:order-2 ${
-              onBaseUrlChange 
-                ? 'hover:bg-[#d0ff16]/10 rounded px-1 py-0.5 transition-colors cursor-pointer' 
-                : ''
+              onBaseUrlChange
+                ? "hover:bg-[#d0ff16]/10 rounded px-1 py-0.5 transition-colors cursor-pointer"
+                : ""
             }`}
             title={onBaseUrlChange ? "Click to change API base URL" : ""}
           >
@@ -135,10 +178,10 @@ const Footer: React.FC<FooterProps> = ({
               <span className="sm:hidden">{new URL(baseUrl).hostname}</span>
             </span>
             {onBaseUrlChange && (
-              <svg 
+              <svg
                 className="w-3 h-3 opacity-70 hover:opacity-100 transition-opacity"
-                fill="none" 
-                stroke="currentColor" 
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path
@@ -158,7 +201,7 @@ const Footer: React.FC<FooterProps> = ({
           </button>
         )}
       </div>
-      
+
       {/* Base URL Settings Modal */}
       {showBaseUrlSettings && onBaseUrlChange && (
         <BaseUrlSettings

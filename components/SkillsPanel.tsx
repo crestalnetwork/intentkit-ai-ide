@@ -523,7 +523,15 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                       className="flex items-center justify-between mt-2"
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <div className="flex items-center space-x-2 text-xs text-[var(--color-text-tertiary)]">
+                      <div
+                        className="flex items-center space-x-2 text-xs text-[var(--color-text-tertiary)] cursor-pointer hover:text-[var(--color-text-secondary)] transition-colors"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExpandedSkill(
+                            expandedSkill === skillName ? null : skillName
+                          );
+                        }}
+                      >
                         <svg
                           className={`w-3 h-3 transform transition-transform duration-200 ${
                             expandedSkill === skillName ? "rotate-180" : ""
@@ -541,8 +549,8 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
                         </svg>
                         <span>
                           {expandedSkill === skillName
-                            ? "Click above to collapse"
-                            : "Click above to expand"}
+                            ? "Click to collapse"
+                            : "Click to expand"}
                         </span>
                       </div>
 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
-import { materialDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import json from "react-syntax-highlighter/dist/cjs/languages/prism/json";
+import { Light as SyntaxHighlighter } from "react-syntax-highlighter";
+import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
+import json from "react-syntax-highlighter/dist/cjs/languages/hljs/json";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
 
-// Register the json language for PrismLight
+// Register the json language
 SyntaxHighlighter.registerLanguage("json", json);
 
 interface JsonEditorPanelProps {
@@ -449,7 +449,7 @@ const JsonEditorPanel: React.FC<JsonEditorPanelProps> = ({
               <div className="bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded-lg overflow-hidden">
                 <SyntaxHighlighter
                   language="json"
-                  style={materialDark}
+                  style={docco}
                   customStyle={{
                     margin: 0,
                     padding: "1rem",

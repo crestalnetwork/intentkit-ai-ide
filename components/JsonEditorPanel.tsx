@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from "react";
-import SyntaxHighlighter from "react-syntax-highlighter";
-import { docco } from "react-syntax-highlighter/dist/cjs/styles/hljs";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
 
@@ -443,10 +441,9 @@ const JsonEditorPanel: React.FC<JsonEditorPanelProps> = ({
               </div>
 
               <div className="bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded-lg overflow-hidden">
-                <SyntaxHighlighter
-                  language="json"
-                  style={docco}
-                  customStyle={{
+                <pre
+                  className="text-sm text-[var(--color-text-primary)] font-mono whitespace-pre-wrap break-words"
+                  style={{
                     margin: 0,
                     padding: "1rem",
                     background: "var(--color-bg-input)",
@@ -455,11 +452,9 @@ const JsonEditorPanel: React.FC<JsonEditorPanelProps> = ({
                     maxHeight: "calc(100vh - 300px)",
                     overflow: "auto",
                   }}
-                  wrapLines={true}
-                  wrapLongLines={true}
                 >
-                  {JSON.stringify(agent, null, 2)}
-                </SyntaxHighlighter>
+                  <code>{JSON.stringify(agent, null, 2)}</code>
+                </pre>
               </div>
             </div>
           )}

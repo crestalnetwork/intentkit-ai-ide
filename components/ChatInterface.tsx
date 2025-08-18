@@ -10,8 +10,18 @@ import { showToast } from "../lib/utils/toast";
 import theme from "../lib/utils/theme";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import javascript from "react-syntax-highlighter/dist/cjs/languages/prism/javascript";
+import typescript from "react-syntax-highlighter/dist/cjs/languages/prism/typescript";
+import json from "react-syntax-highlighter/dist/cjs/languages/prism/json";
+import bash from "react-syntax-highlighter/dist/cjs/languages/prism/bash";
+
+// Register languages for smaller bundle size
+SyntaxHighlighter.registerLanguage("javascript", javascript);
+SyntaxHighlighter.registerLanguage("typescript", typescript);
+SyntaxHighlighter.registerLanguage("json", json);
+SyntaxHighlighter.registerLanguage("bash", bash);
 
 // Custom markdown components with neon theme styling
 const MarkdownComponents = {
@@ -41,6 +51,8 @@ const MarkdownComponents = {
             language={language}
             PreTag="div"
             className="rounded-md border border-[var(--color-border-secondary)]"
+            showLineNumbers={false}
+            wrapLines={false}
             {...props}
           >
             {String(children).replace(/\n$/, "")}

@@ -21,6 +21,14 @@ const CreateAgentPage: React.FC = () => {
   >(undefined);
   const { isAuthenticated } = useAuth();
 
+  // Redirect to home if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push("/");
+      return;
+    }
+  }, [isAuthenticated, router]);
+
   // Initialize base URL from config
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -51,6 +59,18 @@ const CreateAgentPage: React.FC = () => {
     localStorage.setItem(STORAGE_KEYS.BASE_URL, newUrl);
   };
 
+  // Show loading/redirect state if not authenticated
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-primary)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-[var(--color-border-secondary)] border-t-[var(--color-neon-lime)] mb-4 mx-auto"></div>
+          <p className="text-[var(--color-text-tertiary)]">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-bg-primary)] flex flex-col h-screen">
       <Head>
@@ -73,58 +93,6 @@ const CreateAgentPage: React.FC = () => {
         baseUrl={baseUrl}
         onBaseUrlChange={handleBaseUrlChange}
       />
-
-      {/* Authentication Warning */}
-      {!isAuthenticated && (
-        <div className="bg-[var(--color-neon-pink-subtle)] border-b border-[var(--color-neon-pink-border)] px-4 py-2 relative overflow-hidden">
-          {/* Subtle neon glow background effect */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[var(--color-neon-pink-glow)] to-[var(--color-neon-cyan-glow)] opacity-20"></div>
-
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center space-x-2">
-              <div className="flex-shrink-0">
-                <svg
-                  className="w-4 h-4 text-[var(--color-neon-pink)]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-                  />
-                </svg>
-              </div>
-              <div>
-                <p className="text-[var(--color-neon-pink)] text-sm font-medium">
-                  Please sign in to create agents
-                </p>
-              </div>
-            </div>
-            <Link
-              href="/quick"
-              className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] neon-glow-lime hover-neon-glow-lime transition-all duration-200 font-medium whitespace-nowrap"
-            >
-              <svg
-                className="w-3 h-3"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 10V3L4 14h7v7l9-11h-7z"
-                />
-              </svg>
-              <span>Quick Creator</span>
-            </Link>
-          </div>
-        </div>
-      )}
 
       {/* Main content - Give maximum space to AgentCreator */}
       <main className="flex-1 overflow-hidden bg-[var(--color-bg-primary)] min-h-0">

@@ -23,6 +23,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const { user, isAuthenticated } = useAuth();
 
   logger.component("mounted", "AgentCreator", {
@@ -361,7 +362,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSendMessage();
@@ -882,6 +883,15 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Auto-resize textarea when input value changes programmatically
+  useEffect(() => {
+    if (inputRef.current) {
+      const textarea = inputRef.current;
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 128) + "px";
+    }
+  }, [inputValue]);
+
   return (
     <div className="bg-[var(--color-bg-primary)] rounded-lg border border-[var(--color-border-primary)] h-full flex flex-col">
       {/* Compact Header */}
@@ -996,15 +1006,23 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       <div className="border-t border-[var(--color-border-primary)] p-3">
         <div className="space-y-2">
           <div className="flex space-x-2">
-            <input
-              type="text"
+            <textarea
+              ref={inputRef}
               value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
+              onChange={(e) => {
+                setInputValue(e.target.value);
+                // Auto-resize textarea
+                const textarea = e.target;
+                textarea.style.height = "auto";
+                textarea.style.height =
+                  Math.min(textarea.scrollHeight, 128) + "px";
+              }}
               onKeyDown={handleKeyDown}
               placeholder="Describe the agent you want to create..."
-              className="flex-1 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-neon-lime-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] transition-all text-sm"
+              className="flex-1 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-neon-lime-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] transition-all text-sm resize-none overflow-y-auto min-h-[40px] max-h-[128px]"
               disabled={loading}
               maxLength={1000}
+              rows={1}
             />
             <button
               onClick={handleSendMessage}

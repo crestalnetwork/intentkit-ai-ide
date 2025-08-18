@@ -69,17 +69,15 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   }, [selectedTemplate]);
 
   const handleDirectTemplateCreation = async () => {
-    if (!selectedTemplate || !isAuthenticated || !user) {
+    if (!selectedTemplate || !user) {
       logger.error(
         "Cannot create agent from template",
         {
           hasTemplate: !!selectedTemplate,
-          isAuthenticated,
           hasUser: !!user,
         },
         "AgentCreator.handleDirectTemplateCreation"
       );
-      showToast.error("Please sign in to create agents");
       return;
     }
 
@@ -163,20 +161,15 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   };
 
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || loading || !isAuthenticated) {
+    if (!inputValue.trim() || loading) {
       logger.warn(
         "Message send blocked",
         {
           hasInput: !!inputValue.trim(),
           isLoading: loading,
-          isAuthenticated,
         },
         "AgentCreator.handleSendMessage"
       );
-
-      if (!isAuthenticated) {
-        showToast.error("Please sign in to interact with the agent creator");
-      }
       return;
     }
 
@@ -376,13 +369,12 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   };
 
   const handleDeployAgent = async () => {
-    if (!createdAgent || deployLoading || !isAuthenticated) {
+    if (!createdAgent || deployLoading) {
       logger.warn(
         "Cannot deploy agent",
         {
           hasAgent: !!createdAgent,
           isDeploying: deployLoading,
-          isAuthenticated,
         },
         "AgentCreator.handleDeployAgent"
       );
@@ -991,14 +983,6 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
             )}
           </div>
         </div>
-        {!isAuthenticated && (
-          <div className="mt-2 p-2 bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] rounded text-xs">
-            <p className="text-[var(--color-neon-pink)]">
-              <strong>Authentication Required:</strong> Please sign in to create
-              agents
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Messages - Flexible height */}
@@ -1009,71 +993,58 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
       </div>
 
       {/* Chat Input - Fixed at bottom */}
-      {isAuthenticated && (
-        <div className="border-t border-[var(--color-border-primary)] p-3">
-          <div className="space-y-2">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Describe the agent you want to create..."
-                className="flex-1 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-neon-lime-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] transition-all text-sm"
-                disabled={loading}
-                maxLength={1000}
-              />
-              <button
-                onClick={handleSendMessage}
-                disabled={
-                  loading || !inputValue.trim() || inputValue.trim().length < 10
-                }
-                className="bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] px-4 py-2 rounded hover:bg-[var(--color-neon-lime-bright)] disabled:opacity-50 disabled:cursor-not-allowed neon-glow-lime hover-neon-glow-lime transition-all font-medium text-sm"
-              >
-                {loading ? "Generating..." : "Send"}
-              </button>
-            </div>
+      <div className="border-t border-[var(--color-border-primary)] p-3">
+        <div className="space-y-2">
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Describe the agent you want to create..."
+              className="flex-1 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded px-3 py-2 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] focus:border-[var(--color-neon-lime-border)] focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] transition-all text-sm"
+              disabled={loading}
+              maxLength={1000}
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={
+                loading || !inputValue.trim() || inputValue.trim().length < 10
+              }
+              className="bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] px-4 py-2 rounded hover:bg-[var(--color-neon-lime-bright)] disabled:opacity-50 disabled:cursor-not-allowed neon-glow-lime hover-neon-glow-lime transition-all font-medium text-sm"
+            >
+              {loading ? "Generating..." : "Send"}
+            </button>
+          </div>
 
-            {/* Character count and validation */}
-            <div className="flex justify-between text-xs">
-              <div className="text-[var(--color-text-tertiary)]">
-                {inputValue.length < 10 && inputValue.length > 0 && (
-                  <span className="text-[var(--color-neon-pink)]">
-                    Minimum 10 characters required
-                  </span>
-                )}
-                {inputValue.length >= 10 && (
-                  <span className="text-[var(--color-neon-lime)]">
-                    Ready to generate
-                  </span>
-                )}
-              </div>
-              <div
-                className={`${
-                  inputValue.length > 900
-                    ? "text-[var(--color-neon-pink)]"
-                    : inputValue.length > 800
-                    ? "text-[var(--color-warning)]"
-                    : "text-[var(--color-text-tertiary)]"
-                }`}
-              >
-                {inputValue.length}/1000
-              </div>
+          {/* Character count and validation */}
+          <div className="flex justify-between text-xs">
+            <div className="text-[var(--color-text-tertiary)]">
+              {inputValue.length < 10 && inputValue.length > 0 && (
+                <span className="text-[var(--color-neon-pink)]">
+                  Minimum 10 characters required
+                </span>
+              )}
+              {inputValue.length >= 10 && (
+                <span className="text-[var(--color-neon-lime)]">
+                  Ready to generate
+                </span>
+              )}
+            </div>
+            <div
+              className={`${
+                inputValue.length > 900
+                  ? "text-[var(--color-neon-pink)]"
+                  : inputValue.length > 800
+                  ? "text-[var(--color-warning)]"
+                  : "text-[var(--color-text-tertiary)]"
+              }`}
+            >
+              {inputValue.length}/1000
             </div>
           </div>
         </div>
-      )}
-
-      {/* Authentication Warning */}
-      {!isAuthenticated && (
-        <div className="border-t border-[var(--color-border-primary)] p-3">
-          <div className="bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] rounded p-3 text-center">
-            <p className="text-[var(--color-neon-pink)] text-sm">
-              Please sign in to create and deploy agents
-            </p>
-          </div>
-        </div>
-      )}
+      </div>
 
       {/* Skills Panel */}
       <SkillsPanel

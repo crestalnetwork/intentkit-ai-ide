@@ -23,7 +23,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [chatThread, setChatThread] = useState<ChatThread | null>(null);
   const [initializingChat, setInitializingChat] = useState<boolean>(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Add message history navigation state
@@ -49,6 +49,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Auto-resize textarea when input value changes programmatically
+  useEffect(() => {
+    if (inputRef.current) {
+      const textarea = inputRef.current;
+      textarea.style.height = "auto";
+      textarea.style.height = Math.min(textarea.scrollHeight, 128) + "px";
+    }
+  }, [inputValue]);
 
   // Initialize chat thread when agent changes or when selectedThread is provided
   useEffect(() => {
@@ -326,7 +335,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       logger.debug(
@@ -335,35 +344,60 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         "ChatInterface.handleKeyDown"
       );
       sendMessage();
-    } else if (e.key === "ArrowUp" && messageHistory.length > 0) {
-      e.preventDefault();
-      const newIndex = Math.min(historyIndex + 1, messageHistory.length - 1);
-      setHistoryIndex(newIndex);
-      setInputValue(messageHistory[newIndex]);
-      logger.debug(
-        "Message history navigation up",
-        { newIndex, agentId },
-        "ChatInterface.handleKeyDown"
-      );
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
+    } else if (
+      e.key === "ArrowUp" &&
+      messageHistory.length > 0 &&
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      // Only navigate history if cursor is at the beginning of the first line
+      const textarea = e.target;
+      const cursorPosition = textarea.selectionStart;
+      const textBeforeCursor = textarea.value.substring(0, cursorPosition);
+      const isAtFirstLine = !textBeforeCursor.includes("\n");
+      const isAtBeginning = cursorPosition === 0;
+
+      if (isAtFirstLine && isAtBeginning) {
+        e.preventDefault();
+        const newIndex = Math.min(historyIndex + 1, messageHistory.length - 1);
         setHistoryIndex(newIndex);
         setInputValue(messageHistory[newIndex]);
         logger.debug(
-          "Message history navigation down",
+          "Message history navigation up",
           { newIndex, agentId },
           "ChatInterface.handleKeyDown"
         );
-      } else if (historyIndex === 0) {
-        setHistoryIndex(-1);
-        setInputValue("");
-        logger.debug(
-          "Message history cleared",
-          { agentId },
-          "ChatInterface.handleKeyDown"
-        );
+      }
+    } else if (
+      e.key === "ArrowDown" &&
+      e.target instanceof HTMLTextAreaElement
+    ) {
+      // Only navigate history if cursor is at the end of the last line
+      const textarea = e.target;
+      const cursorPosition = textarea.selectionStart;
+      const textAfterCursor = textarea.value.substring(cursorPosition);
+      const isAtLastLine = !textAfterCursor.includes("\n");
+      const isAtEnd = cursorPosition === textarea.value.length;
+
+      if (isAtLastLine && isAtEnd) {
+        e.preventDefault();
+        if (historyIndex > 0) {
+          const newIndex = historyIndex - 1;
+          setHistoryIndex(newIndex);
+          setInputValue(messageHistory[newIndex]);
+          logger.debug(
+            "Message history navigation down",
+            { newIndex, agentId },
+            "ChatInterface.handleKeyDown"
+          );
+        } else if (historyIndex === 0) {
+          setHistoryIndex(-1);
+          setInputValue("");
+          logger.debug(
+            "Message history cleared",
+            { agentId },
+            "ChatInterface.handleKeyDown"
+          );
+        }
       }
     }
   };
@@ -668,15 +702,24 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
       </div>
       <div className="border-t border-[var(--color-border-primary)] p-2 flex-shrink-0">
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
-            className="flex-1 p-3 sm:p-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all"
+            className="flex-1 p-3 sm:p-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all resize-none overflow-y-auto min-h-[2.75rem] max-h-32"
             disabled={loading || !chatThread}
+            rows={1}
+            style={{
+              height: "auto",
+            }}
+            onInput={(e) => {
+              // Auto-resize textarea based on content
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = "auto";
+              target.style.height = Math.min(target.scrollHeight, 128) + "px"; // 128px = max-h-32
+            }}
           />
           <button
             onClick={sendMessage}
@@ -688,7 +731,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
         {messageHistory.length > 0 && (
           <div className="text-xs text-[var(--color-text-muted)] mt-1 hidden sm:block">
-            Use ↑↓ arrows to navigate message history
+            Use ↑↓ arrows to navigate message history • Shift+Enter for new line
           </div>
         )}
       </div>

@@ -8,6 +8,194 @@ import apiClient, {
 import logger from "../lib/utils/logger";
 import { showToast } from "../lib/utils/toast";
 import theme from "../lib/utils/theme";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import javascript from "react-syntax-highlighter/dist/cjs/languages/prism/javascript";
+import typescript from "react-syntax-highlighter/dist/cjs/languages/prism/typescript";
+import json from "react-syntax-highlighter/dist/cjs/languages/prism/json";
+import bash from "react-syntax-highlighter/dist/cjs/languages/prism/bash";
+
+// Register languages for smaller bundle size
+SyntaxHighlighter.registerLanguage("javascript", javascript);
+SyntaxHighlighter.registerLanguage("typescript", typescript);
+SyntaxHighlighter.registerLanguage("json", json);
+SyntaxHighlighter.registerLanguage("bash", bash);
+
+// Custom markdown components with neon theme styling
+const MarkdownComponents = {
+  // Links
+  a: ({ href, children, ...props }: any) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-[var(--color-neon-cyan)] hover:text-[var(--color-neon-cyan-bright)] underline decoration-[var(--color-neon-cyan)] hover:decoration-[var(--color-neon-cyan-bright)] transition-colors font-medium"
+      {...props}
+    >
+      {children}
+    </a>
+  ),
+
+  // Code blocks
+  code: ({ node, inline, className, children, ...props }: any) => {
+    const match = /language-(\w+)/.exec(className || "");
+    const language = match ? match[1] : "";
+
+    if (!inline && language) {
+      return (
+        <div className="my-2">
+          <SyntaxHighlighter
+            style={oneDark}
+            language={language}
+            PreTag="div"
+            className="rounded-md border border-[var(--color-border-secondary)]"
+            showLineNumbers={false}
+            wrapLines={false}
+            {...props}
+          >
+            {String(children).replace(/\n$/, "")}
+          </SyntaxHighlighter>
+        </div>
+      );
+    }
+
+    return (
+      <code
+        className="bg-[var(--color-bg-secondary)] text-[var(--color-neon-lime)] px-1 py-0.5 rounded text-sm font-mono border border-[var(--color-border-secondary)]"
+        {...props}
+      >
+        {children}
+      </code>
+    );
+  },
+
+  // Headings
+  h1: ({ children, ...props }: any) => (
+    <h1
+      className="text-xl font-bold text-[var(--color-text-primary)] mb-2 mt-4"
+      {...props}
+    >
+      {children}
+    </h1>
+  ),
+  h2: ({ children, ...props }: any) => (
+    <h2
+      className="text-lg font-semibold text-[var(--color-text-primary)] mb-2 mt-3"
+      {...props}
+    >
+      {children}
+    </h2>
+  ),
+  h3: ({ children, ...props }: any) => (
+    <h3
+      className="text-base font-medium text-[var(--color-text-primary)] mb-1 mt-2"
+      {...props}
+    >
+      {children}
+    </h3>
+  ),
+
+  // Lists
+  ul: ({ children, ...props }: any) => (
+    <ul
+      className="list-disc list-inside space-y-1 my-2 text-[var(--color-text-primary)]"
+      {...props}
+    >
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }: any) => (
+    <ol
+      className="list-decimal list-inside space-y-1 my-2 text-[var(--color-text-primary)]"
+      {...props}
+    >
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }: any) => (
+    <li className="text-[var(--color-text-primary)]" {...props}>
+      {children}
+    </li>
+  ),
+
+  // Emphasis
+  strong: ({ children, ...props }: any) => (
+    <strong className="font-bold text-[var(--color-text-primary)]" {...props}>
+      {children}
+    </strong>
+  ),
+  em: ({ children, ...props }: any) => (
+    <em className="italic text-[var(--color-text-secondary)]" {...props}>
+      {children}
+    </em>
+  ),
+
+  // Blockquotes
+  blockquote: ({ children, ...props }: any) => (
+    <blockquote
+      className="border-l-4 border-[var(--color-neon-lime)] pl-4 my-2 bg-[var(--color-bg-secondary)] p-2 rounded-r italic text-[var(--color-text-secondary)]"
+      {...props}
+    >
+      {children}
+    </blockquote>
+  ),
+
+  // Paragraphs
+  p: ({ children, ...props }: any) => (
+    <p className="mb-2 last:mb-0" {...props}>
+      {children}
+    </p>
+  ),
+
+  // Tables
+  table: ({ children, ...props }: any) => (
+    <div className="overflow-x-auto my-2">
+      <table
+        className="min-w-full border border-[var(--color-border-primary)] rounded-md"
+        {...props}
+      >
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children, ...props }: any) => (
+    <thead className="bg-[var(--color-bg-secondary)]" {...props}>
+      {children}
+    </thead>
+  ),
+  tbody: ({ children, ...props }: any) => <tbody {...props}>{children}</tbody>,
+  tr: ({ children, ...props }: any) => (
+    <tr className="border-t border-[var(--color-border-primary)]" {...props}>
+      {children}
+    </tr>
+  ),
+  th: ({ children, ...props }: any) => (
+    <th
+      className="px-3 py-2 text-left font-medium text-[var(--color-text-primary)] border-r border-[var(--color-border-primary)] last:border-r-0"
+      {...props}
+    >
+      {children}
+    </th>
+  ),
+  td: ({ children, ...props }: any) => (
+    <td
+      className="px-3 py-2 text-[var(--color-text-secondary)] border-r border-[var(--color-border-primary)] last:border-r-0"
+      {...props}
+    >
+      {children}
+    </td>
+  ),
+
+  // Horizontal rule
+  hr: ({ ...props }: any) => (
+    <hr
+      className="border-t border-[var(--color-border-primary)] my-4"
+      {...props}
+    />
+  ),
+};
 
 const ChatInterface: React.FC<ChatInterfaceProps> = ({
   baseUrl,
@@ -462,7 +650,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const renderTypingIndicator = () => (
     <div className="flex justify-start mb-4">
-      <div className="bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-lg px-4 py-2 max-w-xs">
+      <div className="bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-2xl rounded-bl-md px-4 py-3 max-w-xs">
         <div className="flex items-center space-x-1">
           <div className="flex space-x-1">
             <div className="w-2 h-2 bg-[var(--color-neon-lime)] rounded-full animate-bounce"></div>
@@ -493,16 +681,21 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}
       >
         <div
-          className={`max-w-[85%] sm:max-w-[70%] rounded px-2 py-1 ${
+          className={`max-w-[85%] sm:max-w-[70%] px-4 py-3 ${
             isUser
-              ? "bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] neon-glow-lime"
+              ? "bg-[var(--color-neon-lime-subtle)] text-[var(--color-text-primary)] border-2 border-[var(--color-neon-lime-border)] rounded-2xl rounded-br-md"
               : isSystem
-              ? "bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] text-[var(--color-neon-pink)]"
-              : "bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)]"
+              ? "bg-[var(--color-neon-pink-subtle)] border border-[var(--color-neon-pink-border)] text-[var(--color-neon-pink)] rounded-2xl rounded-bl-md"
+              : "bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-2xl rounded-bl-md"
           }`}
         >
-          <div className="whitespace-pre-wrap break-words text-sm sm:text-base">
-            {message.content}
+          <div className="text-sm sm:text-base markdown-content">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={MarkdownComponents}
+            >
+              {message.content}
+            </ReactMarkdown>
           </div>
 
           {/* Skill calls display */}

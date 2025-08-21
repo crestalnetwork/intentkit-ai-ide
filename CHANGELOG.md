@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.3.1
+
+### Bug Fixes
+- **Twitter API Keys**: Fixed Twitter skill to show 4 separate API key input fields instead of 1
+  - X API consumer key
+  - X API consumer secret  
+  - X API access token
+  - X API access token secret
+- **Backward Compatible**: Other skills with single API keys still work normally
+
 ## v1.3.0
 
 ### New Features

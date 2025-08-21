@@ -3,6 +3,13 @@ import { getSkillsFromSchema } from "../lib/utils/schemaApi";
 import { showToast } from "../lib/utils/toast";
 import apiClient from "../lib/utils/apiClient";
 import ApiKeyModal from "./ApiKeyModal";
+
+interface ApiKeyField {
+  key: string;
+  title: string;
+  description?: string;
+  required?: boolean;
+}
 import logger from "../lib/utils/logger";
 
 interface SkillsPanelProps {
@@ -138,6 +145,47 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
     return skill.properties?.api_key_provider?.enum?.includes("agent_owner");
   };
 
+  // Helper function to get API key fields for skills that need multiple keys
+  const getApiKeyFields = (skill: any): ApiKeyField[] | null => {
+    if (
+      skill.if &&
+      skill.if.properties?.api_key_provider?.const === "agent_owner" &&
+      skill.then
+    ) {
+      const thenProperties = skill.then.properties;
+      const apiKeyFields = [];
+
+      // Check for multiple API key fields (like Twitter)
+      const possibleApiKeyFields = [
+        "consumer_key",
+        "consumer_secret",
+        "access_token",
+        "access_token_secret",
+        "api_key",
+      ];
+
+      for (const fieldKey of possibleApiKeyFields) {
+        const field = thenProperties[fieldKey];
+        if (field) {
+          apiKeyFields.push({
+            key: fieldKey,
+            title:
+              field.title ||
+              fieldKey
+                .replace(/_/g, " ")
+                .replace(/\b\w/g, (l) => l.toUpperCase()),
+            description: field.description,
+            required: skill.then.required?.includes(fieldKey) !== false,
+          });
+        }
+      }
+
+      // Return multiple fields if found, otherwise null for single field
+      return apiKeyFields.length > 1 ? apiKeyFields : null;
+    }
+    return null;
+  };
+
   // Helper function to get API key URL for owner-provided keys
   const getApiKeyUrl = (skill: any) => {
     // Debug logging for troubleshooting
@@ -161,6 +209,12 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
       const apiKeyProperty = skill.then.properties?.api_key;
       if (apiKeyProperty && apiKeyProperty["x-link"]) {
         return extractUrlFromMarkdown(apiKeyProperty["x-link"]);
+      }
+
+      // For Twitter-style multiple keys, try to get URL from consumer_key
+      const consumerKeyProperty = skill.then.properties?.consumer_key;
+      if (consumerKeyProperty && consumerKeyProperty["x-link"]) {
+        return extractUrlFromMarkdown(consumerKeyProperty["x-link"]);
       }
     }
 
@@ -281,12 +335,12 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
   const handleAddSkillWithApiKey = async (
     skillName: string,
     skill: SkillConfig,
-    apiKey: string
+    apiKey: string | Record<string, string>
   ) => {
     try {
       setIsUpdating(skillName);
 
-      // Generate skill config with API key
+      // Generate skill config with API key(s)
       const skillConfig = {
         enabled: true,
         states: Object.keys(skill.properties.states?.properties || {}).reduce(
@@ -297,7 +351,7 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
           {} as any
         ),
         api_key_provider: "agent_owner",
-        api_key: apiKey,
+        ...(typeof apiKey === "string" ? { api_key: apiKey } : apiKey),
       };
 
       // Check if agent has an ID (deployed) or not (local/non-deployed)
@@ -974,6 +1028,11 @@ const SkillsPanel: React.FC<SkillsPanelProps> = ({
           showApiKeyModal
             ? getApiKeyUrl((skills as any)[showApiKeyModal])
             : null
+        }
+        apiKeyFields={
+          showApiKeyModal
+            ? getApiKeyFields((skills as any)[showApiKeyModal]) || undefined
+            : undefined
         }
         onClose={() => {
           setShowApiKeyModal(null);

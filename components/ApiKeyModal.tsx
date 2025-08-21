@@ -1,13 +1,21 @@
 import React, { useState } from "react";
 
+interface ApiKeyField {
+  key: string;
+  title: string;
+  description?: string;
+  required?: boolean;
+}
+
 interface ApiKeyModalProps {
   isVisible: boolean;
   skillName: string;
   skillTitle?: string;
   apiKeyUrl?: { text: string; url: string } | null;
   onClose: () => void;
-  onSubmit: (apiKey: string) => void;
+  onSubmit: (apiKey: string | Record<string, string>) => void;
   isLoading?: boolean;
+  apiKeyFields?: ApiKeyField[];
 }
 
 const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
@@ -18,16 +26,34 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
   onClose,
   onSubmit,
   isLoading = false,
+  apiKeyFields,
 }) => {
   const [apiKeyInput, setApiKeyInput] = useState("");
+  const [multipleApiKeys, setMultipleApiKeys] = useState<
+    Record<string, string>
+  >({});
+
+  const isMultipleFields = apiKeyFields && apiKeyFields.length > 0;
 
   const handleSubmit = () => {
-    if (!apiKeyInput.trim()) return;
-    onSubmit(apiKeyInput.trim());
+    if (isMultipleFields) {
+      // Validate all required fields are filled
+      const missingFields = apiKeyFields.filter(
+        (field) =>
+          field.required !== false && !multipleApiKeys[field.key]?.trim()
+      );
+      if (missingFields.length > 0) return;
+
+      onSubmit(multipleApiKeys);
+    } else {
+      if (!apiKeyInput.trim()) return;
+      onSubmit(apiKeyInput.trim());
+    }
   };
 
   const handleClose = () => {
     setApiKeyInput("");
+    setMultipleApiKeys({});
     onClose();
   };
 
@@ -118,24 +144,71 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
-              Enter your API key:
-            </label>
-            <input
-              type="password"
-              value={apiKeyInput}
-              onChange={(e) => setApiKeyInput(e.target.value)}
-              placeholder="Paste your API key here..."
-              className="w-full px-3 py-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && apiKeyInput.trim()) {
-                  handleSubmit();
-                }
-              }}
-            />
-          </div>
+          {isMultipleFields ? (
+            <div className="space-y-4">
+              {apiKeyFields.map((field, index) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                    {field.title}
+                    {field.required !== false && (
+                      <span className="text-[var(--color-neon-pink)] ml-1">
+                        *
+                      </span>
+                    )}
+                  </label>
+                  {field.description && (
+                    <p className="text-xs text-[var(--color-text-tertiary)] mb-2">
+                      {field.description}
+                    </p>
+                  )}
+                  <input
+                    type="password"
+                    value={multipleApiKeys[field.key] || ""}
+                    onChange={(e) =>
+                      setMultipleApiKeys((prev) => ({
+                        ...prev,
+                        [field.key]: e.target.value,
+                      }))
+                    }
+                    placeholder={`Enter your ${field.title.toLowerCase()}...`}
+                    className="w-full px-3 py-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all"
+                    autoFocus={index === 0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        const allFieldsFilled = apiKeyFields.every(
+                          (f) =>
+                            f.required === false ||
+                            multipleApiKeys[f.key]?.trim()
+                        );
+                        if (allFieldsFilled) {
+                          handleSubmit();
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-[var(--color-text-primary)] mb-2">
+                Enter your API key:
+              </label>
+              <input
+                type="password"
+                value={apiKeyInput}
+                onChange={(e) => setApiKeyInput(e.target.value)}
+                placeholder="Paste your API key here..."
+                className="w-full px-3 py-2 bg-[var(--color-bg-input)] border border-[var(--color-border-primary)] rounded text-[var(--color-text-primary)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-neon-lime-glow)] focus:border-[var(--color-neon-lime-border)] placeholder:text-[var(--color-text-muted)] transition-all"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && apiKeyInput.trim()) {
+                    handleSubmit();
+                  }
+                }}
+              />
+            </div>
+          )}
 
           <div className="flex space-x-3">
             <button
@@ -146,7 +219,16 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
             </button>
             <button
               onClick={handleSubmit}
-              disabled={!apiKeyInput.trim() || isLoading}
+              disabled={
+                isLoading ||
+                (isMultipleFields
+                  ? apiKeyFields.some(
+                      (field) =>
+                        field.required !== false &&
+                        !multipleApiKeys[field.key]?.trim()
+                    )
+                  : !apiKeyInput.trim())
+              }
               className="flex-1 px-4 py-2 text-sm bg-[var(--color-neon-lime)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-lime-bright)] transition-all duration-200 font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {isLoading ? (

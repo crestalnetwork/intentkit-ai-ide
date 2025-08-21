@@ -5,7 +5,6 @@ import { showToast } from "../lib/utils/toast";
 import ChatInterface from "../components/ChatInterface";
 import ConversationsList from "../components/ConversationsList";
 import AgentDetail from "../components/AgentDetail";
-import Settings from "../components/Settings";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { Agent, ChatThread } from "../lib/utils/apiClient";
@@ -13,7 +12,6 @@ import apiClient from "../lib/utils/apiClient";
 import { STORAGE_KEYS, DEFAULT_BASE_URL } from "../lib/utils/config";
 import logger from "../lib/utils/logger";
 import theme from "../lib/utils/theme";
-import AuthModal from "../components/AuthModal";
 import { useAuth } from "@/context/AuthProvider";
 
 const Home: React.FC = (): JSX.Element => {

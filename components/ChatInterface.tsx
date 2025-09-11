@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import { ChatInterfaceProps, ExtendedMessage } from "../lib/types";
 import apiClient, {
   ChatThread,
@@ -205,6 +206,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   viewMode = "chat",
   onNewChatCreated,
 }) => {
+  const router = useRouter();
   const [messages, setMessages] = useState<ExtendedMessage[]>([]);
   const [inputValue, setInputValue] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -648,6 +650,15 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setTimeout(scrollToApiKeys, viewMode === "chat" ? 600 : 200);
   };
 
+  const handleEditAgent = () => {
+    logger.info(
+      "Navigating to edit agent",
+      { agentId, agentName: agent.name },
+      "ChatInterface.handleEditAgent"
+    );
+    router.push(`/vibe?agentId=${agentId}`);
+  };
+
   const renderTypingIndicator = () => (
     <div className="flex justify-start mb-4">
       <div className="bg-[var(--color-bg-card)] text-[var(--color-text-primary)] border border-[var(--color-border-primary)] rounded-2xl rounded-bl-md px-4 py-3 max-w-xs">
@@ -797,6 +808,25 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
         </div>
         {/* Action Buttons */}
         <div className="flex space-x-2 flex-shrink-0 w-full sm:w-auto">
+          <button
+            onClick={handleEditAgent}
+            className="inline-flex items-center space-x-2 text-sm py-2 px-4 bg-[var(--color-bg-card)] text-[var(--color-neon-purple)] border border-[var(--color-neon-purple-border)] rounded hover:bg-[var(--color-bg-tertiary)] hover:border-[var(--color-neon-purple)] hover-neon-glow-purple transition-all duration-200 whitespace-nowrap font-medium"
+          >
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+              />
+            </svg>
+            <span>Edit Agent</span>
+          </button>
           <button
             onClick={() => {
               // Start a new chat - clear current thread and create new one

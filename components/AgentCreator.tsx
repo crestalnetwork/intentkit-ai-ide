@@ -5,6 +5,7 @@ import { templateToAgentConfig } from "../lib/utils/templateUtils";
 import apiClient, { Agent, AgentGenerateRequest } from "../lib/utils/apiClient";
 import logger from "../lib/utils/logger";
 import SkillsPanel from "./SkillsPanel";
+import JsonEditorPanel from "./JsonEditorPanel";
 import { useAuth } from "@/context/AuthProvider";
 
 const AgentCreator: React.FC<AgentCreatorProps> = ({
@@ -21,6 +22,7 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
   const [inputValue, setInputValue] = useState<string>("");
   const [projectId, setProjectId] = useState<string | null>(null);
   const [showSkillsPanel, setShowSkillsPanel] = useState<boolean>(false);
+  const [showJsonEditorPanel, setShowJsonEditorPanel] = useState<boolean>(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -219,13 +221,20 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         existing_agent: createdAgent || null, // Explicitly set null if no existing agent
       };
 
+      // Enhanced logging for AgentCreator flow
       logger.info(
-        "Sending agent generation request",
+        "AGENT_CREATOR FLOW - Sending agent generation request",
         {
           promptLength: generateRequest.prompt.length,
+          flowType: generateRequest.existing_agent ? "EDIT_EXISTING_AGENT" : "CREATE_NEW_AGENT",
           hasProjectId: !!generateRequest.project_id,
+          projectId: generateRequest.project_id,
           hasExistingAgent: !!generateRequest.existing_agent,
           userId: generateRequest.user_id,
+          userIdType: generateRequest.user_id?.startsWith('did:privy') ? 'privy' : 'unknown',
+          existingAgentId: generateRequest.existing_agent?.id,
+          existingAgentName: generateRequest.existing_agent?.name,
+          existingAgentSkillsCount: generateRequest.existing_agent?.skills ? Object.keys(generateRequest.existing_agent.skills).length : 0,
         },
         "AgentCreator.handleSendMessage"
       );
@@ -984,6 +993,26 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
                   </span>
                 )}
                 <button
+                  onClick={() => setShowJsonEditorPanel(true)}
+                  className="inline-flex items-center space-x-1 text-xs py-1.5 px-3 bg-[var(--color-warning)] text-[var(--color-text-on-primary)] border border-[var(--color-neon-pink-border)] rounded hover:bg-[var(--color-neon-pink)] hover-neon-glow-pink transition-all duration-200 font-medium"
+                  title="Edit Agent JSON Configuration"
+                >
+                  <svg
+                    className="w-3 h-3"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                    />
+                  </svg>
+                  <span>Edit JSON</span>
+                </button>
+                <button
                   onClick={handleExportAgent}
                   className="text-xs py-1.5 px-3 bg-[var(--color-neon-cyan)] text-[var(--color-text-on-primary)] rounded hover:bg-[var(--color-neon-cyan-bright)] hover-neon-glow-cyan transition-all font-medium"
                 >
@@ -1072,6 +1101,21 @@ const AgentCreator: React.FC<AgentCreatorProps> = ({
         onRemoveSkill={removeSkillFromAgent}
         agent={createdAgent}
       />
+
+      {/* JSON Editor Panel */}
+      {showJsonEditorPanel && createdAgent && (
+        <JsonEditorPanel
+          isVisible={showJsonEditorPanel}
+          onClose={() => setShowJsonEditorPanel(false)}
+          agent={createdAgent}
+          startInEditMode={true}
+          onAgentUpdate={() => {
+            // The JsonEditorPanel handles the update internally and saves to the API
+            // We just show a success message here
+            showToast.success("Agent configuration updated successfully!");
+          }}
+        />
+      )}
     </div>
   );
 };

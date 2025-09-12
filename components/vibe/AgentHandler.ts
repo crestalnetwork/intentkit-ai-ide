@@ -60,25 +60,47 @@ export class AgentHandler {
       }, "AgentHandler.handleEditAgent");
 
       // Handle agents that might be missing the required fields (older agents or different API responses)
-      // Use fallback values if the fields are missing
-      const purpose = agent.purpose || agent.description || "A helpful AI assistant";
-      const personality = agent.personality || "Helpful, knowledgeable, and professional";
-      const principles = agent.principles || "Always be helpful, accurate, and respectful";
+      // Use fallback values if the fields are missing, null, undefined, or empty strings
+      const purpose = (agent.purpose && agent.purpose.trim()) || 
+                     (agent.description && agent.description.trim()) || 
+                     "A helpful AI assistant";
+      const personality = (agent.personality && agent.personality.trim()) || 
+                         "Helpful, knowledgeable, and professional";
+      const principles = (agent.principles && agent.principles.trim()) || 
+                        "Always be helpful, accurate, and respectful";
 
       // Create a clean agent object matching the exact structure of working requests
+      // Ensure all required fields are properly set and not undefined/null/empty
       const cleanAgentForGeneration = {
-        name: agent.name,
-        purpose: purpose,
-        personality: personality,
-        principles: principles,
+        name: (agent.name && agent.name.trim()) || "AI Assistant",
+        purpose: purpose, // Already validated above
+        personality: personality, // Already validated above
+        principles: principles, // Already validated above
         owner: agent.owner,
-        model: agent.model,
-        temperature: agent.temperature,
-        skills: agent.skills,
+        model: agent.model || "gpt-4.1-nano",
+        temperature: agent.temperature ?? 0.7,
+        skills: agent.skills || {},
         readonly_wallet_address: (agent as any).readonly_wallet_address || "",
         created_at: agent.created_at,
         updated_at: agent.updated_at,
       };
+
+      // Final validation - ensure no required fields are empty
+      if (!cleanAgentForGeneration.name || !cleanAgentForGeneration.purpose || 
+          !cleanAgentForGeneration.personality || !cleanAgentForGeneration.principles) {
+        const missingFields = [];
+        if (!cleanAgentForGeneration.name) missingFields.push('name');
+        if (!cleanAgentForGeneration.purpose) missingFields.push('purpose');
+        if (!cleanAgentForGeneration.personality) missingFields.push('personality');
+        if (!cleanAgentForGeneration.principles) missingFields.push('principles');
+        
+        logger.error("VIBE FLOW - Required fields still missing after fallbacks", {
+          missingFields,
+          cleanAgentFields: Object.keys(cleanAgentForGeneration),
+        }, "AgentHandler.handleEditAgent");
+        
+        throw new Error(`Required fields are missing: ${missingFields.join(', ')}`);
+      }
 
       logger.info("VIBE FLOW - Using fallback values for missing fields", {
         originalPurpose: agent.purpose,
@@ -200,15 +222,35 @@ export class AgentHandler {
         agentName: updatedAgent.name,
       }, "AgentHandler.handleAutoUpdate");
 
+      // Ensure required fields are present with fallbacks
       const updateData = {
-        name: updatedAgent.name,
-        purpose: updatedAgent.purpose,
-        personality: updatedAgent.personality,
-        principles: updatedAgent.principles,
+        name: updatedAgent.name || "AI Assistant",
+        purpose: updatedAgent.purpose || "A helpful AI assistant",
+        personality: updatedAgent.personality || "Helpful, knowledgeable, and professional",
+        principles: updatedAgent.principles || "Always be helpful, accurate, and respectful",
         model: updatedAgent.model,
         skills: updatedAgent.skills,
         example_intro: updatedAgent.example_intro,
       };
+
+      // Validate that all required fields are properly set
+      const requiredFields: (keyof typeof updateData)[] = ['name', 'purpose', 'personality', 'principles'];
+      const missingFields = [];
+      
+      for (const field of requiredFields) {
+        const value = updateData[field];
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          missingFields.push(field);
+        }
+      }
+
+      if (missingFields.length > 0) {
+        logger.error("Auto-update failed - missing required fields", {
+          missingFields,
+          updateData: Object.keys(updateData),
+        }, "AgentHandler.handleAutoUpdate");
+        throw new Error(`Missing required fields for update: ${missingFields.join(', ')}`);
+      }
 
       const finalUpdatedAgent = await apiClient.updateAgent(updatedAgent.id!, updateData);
       onAgentUpdated(finalUpdatedAgent);
@@ -403,7 +445,35 @@ export class AgentHandler {
         agentName: agentToDeploy.name,
       }, "AgentHandler.handleAutoDeploy");
 
-      const deployedAgent = await apiClient.createAgent(agentToDeploy);
+      // Ensure required fields are present before deployment
+      const cleanAgentForDeployment = {
+        ...agentToDeploy,
+        name: agentToDeploy.name || "AI Assistant",
+        purpose: agentToDeploy.purpose || "A helpful AI assistant",
+        personality: agentToDeploy.personality || "Helpful, knowledgeable, and professional",
+        principles: agentToDeploy.principles || "Always be helpful, accurate, and respectful",
+      };
+
+      // Validate required fields
+      const requiredFields: (keyof typeof cleanAgentForDeployment)[] = ['name', 'purpose', 'personality', 'principles'];
+      const missingFields = [];
+      
+      for (const field of requiredFields) {
+        const value = cleanAgentForDeployment[field];
+        if (!value || (typeof value === 'string' && !value.trim())) {
+          missingFields.push(field);
+        }
+      }
+
+      if (missingFields.length > 0) {
+        logger.error("Auto-deploy failed - missing required fields", {
+          missingFields,
+          agentFields: Object.keys(cleanAgentForDeployment),
+        }, "AgentHandler.handleAutoDeploy");
+        throw new Error(`Missing required fields for deployment: ${missingFields.join(', ')}`);
+      }
+
+      const deployedAgent = await apiClient.createAgent(cleanAgentForDeployment);
       onAgentCreated(deployedAgent);
 
       let deployContent = `**Excellent!** Your agent "${deployedAgent.name}" has been successfully deployed and is now ready to use!`;

@@ -1,18 +1,8 @@
 import React from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import javascript from "react-syntax-highlighter/dist/cjs/languages/prism/javascript";
-import typescript from "react-syntax-highlighter/dist/cjs/languages/prism/typescript";
-import json from "react-syntax-highlighter/dist/cjs/languages/prism/json";
-import bash from "react-syntax-highlighter/dist/cjs/languages/prism/bash";
-
-// Register languages for smaller bundle size
-SyntaxHighlighter.registerLanguage("javascript", javascript);
-SyntaxHighlighter.registerLanguage("typescript", typescript);
-SyntaxHighlighter.registerLanguage("json", json);
-SyntaxHighlighter.registerLanguage("bash", bash);
 
 // Custom markdown components with neon theme styling
 export const MarkdownComponents = {
@@ -82,21 +72,20 @@ export const MarkdownComponents = {
 
     return !inline && language ? (
       <div className="my-4">
-        <SyntaxHighlighter
-          style={oneDark}
-          language={language}
-          PreTag="div"
-          className="rounded-lg border border-[var(--color-border-secondary)]"
-          customStyle={{
+        {React.createElement(SyntaxHighlighter as any, {
+          style: oneDark,
+          language: language,
+          PreTag: "div",
+          className: "rounded-lg border border-[var(--color-border-secondary)]",
+          customStyle: {
             background: "var(--color-bg-secondary)",
             padding: "1rem",
             fontSize: "0.875rem",
             margin: 0,
-          }}
-          {...props}
-        >
-          {String(children).replace(/\n$/, "")}
-        </SyntaxHighlighter>
+          },
+          ...props,
+          children: String(children).replace(/\n$/, "")
+        })}
       </div>
     ) : (
       <code

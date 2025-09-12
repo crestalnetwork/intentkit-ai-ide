@@ -16,7 +16,6 @@
     "@supabase/supabase-js": "^2.52.0",
     "@tanstack/react-query": "^5.28.6",
     "axios": "^1.6.2",
-    "canvas-confetti": "^1.9.3",
     "mitt": "^3.0.1",
     "mixpanel-browser": "^2.67.0",
     "next": "14.0.4",

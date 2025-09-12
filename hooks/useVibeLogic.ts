@@ -5,7 +5,6 @@ import { Agent } from "@/lib/utils/apiClient";
 import apiClient from "@/lib/utils/apiClient";
 import { showToast } from "@/lib/utils/toast";
 import logger from "@/lib/utils/logger";
-import confetti from "canvas-confetti";
 import { ConversationMessage } from "@/components/vibe/AgentEditor";
 import { AgentHandler } from "@/components/vibe/AgentHandler";
 
@@ -24,19 +23,6 @@ export const useVibeLogic = () => {
   const [projectId, setProjectId] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState("");
 
-  // Confetti celebration when page loads
-  useEffect(() => {
-    const triggerConfetti = () => {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    };
-    
-    const timer = setTimeout(triggerConfetti, 300);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Redirect to home if not authenticated
   useEffect(() => {

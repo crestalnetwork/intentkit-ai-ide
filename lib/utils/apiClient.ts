@@ -429,34 +429,102 @@ class ApiClient {
       throw new Error("user_id is required for agent generation");
     }
 
+    // Enhanced logging for debugging
+    const requestMetadata = {
+      promptLength: request.prompt.length,
+      hasExistingAgent: !!request.existing_agent,
+      userId: request.user_id,
+      projectId: request.project_id,
+      userIdType: request.user_id?.startsWith('did:privy') ? 'privy' : 'unknown',
+      existingAgentId: request.existing_agent?.id || null,
+      existingAgentName: request.existing_agent?.name || null,
+      existingAgentSkillsCount: request.existing_agent?.skills ? Object.keys(request.existing_agent.skills).length : 0,
+      existingAgentSkills: request.existing_agent?.skills ? Object.keys(request.existing_agent.skills) : [],
+    };
+
     logger.info(
-      "Generating agent via API",
-      {
-        promptLength: request.prompt.length,
+      "Generating agent via API - Pre-request",
+      requestMetadata,
+      "ApiClient.generateAgent"
+    );
+
+    // Log the exact request payload for debugging (sanitized)
+    const sanitizedRequest = {
+      prompt: request.prompt,
+      user_id: request.user_id,
+      project_id: request.project_id,
+      existing_agent: request.existing_agent ? {
+        id: request.existing_agent.id,
+        name: request.existing_agent.name,
+        model: request.existing_agent.model,
+        skills: request.existing_agent.skills ? Object.fromEntries(
+          Object.entries(request.existing_agent.skills).map(([key, value]) => [
+            key, 
+            typeof value === 'object' ? { 
+              enabled: (value as any)?.enabled,
+              states: (value as any)?.states ? Object.keys((value as any).states) : undefined,
+              api_key_provider: (value as any)?.api_key_provider,
+              hasApiKey: !!(value as any)?.api_key
+            } : value
+          ])
+        ) : undefined,
+        owner: request.existing_agent.owner,
+        created_at: request.existing_agent.created_at,
+        wallet_provider: request.existing_agent.wallet_provider,
+        network_id: request.existing_agent.network_id,
+      } : null
+    };
+
+    logger.info(
+      "Generating agent via API - Request payload (sanitized)",
+      sanitizedRequest,
+      "ApiClient.generateAgent"
+    );
+
+    try {
+      const response = await this.client.post<AgentGenerateResponse>(
+        API_ENDPOINTS.AGENT_GENERATE,
+        request
+      );
+
+      logger.info(
+        "Agent generation successful",
+        {
+          agentName: response.data.agent.name,
+          projectId: response.data.project_id,
+          activatedSkills: response.data.activated_skills?.length || 0,
+          autonomousTasks: response.data.autonomous_tasks?.length || 0,
+          responseStatus: response.status,
+        },
+        "ApiClient.generateAgent"
+      );
+
+      return response.data;
+    } catch (error: any) {
+      // Enhanced error logging
+      const errorDetails = {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        errorMessage: error.message,
+        responseData: error.response?.data,
+        requestUrl: error.config?.url,
+        requestMethod: error.config?.method,
         hasExistingAgent: !!request.existing_agent,
+        existingAgentId: request.existing_agent?.id,
+        promptLength: request.prompt.length,
         userId: request.user_id,
         projectId: request.project_id,
-      },
-      "ApiClient.generateAgent"
-    );
+      };
 
-    const response = await this.client.post<AgentGenerateResponse>(
-      API_ENDPOINTS.AGENT_GENERATE,
-      request
-    );
+      logger.error(
+        "Agent generation failed",
+        errorDetails,
+        "ApiClient.generateAgent"
+      );
 
-    logger.info(
-      "Agent generation successful",
-      {
-        agentName: response.data.agent.name,
-        projectId: response.data.project_id,
-        activatedSkills: response.data.activated_skills?.length || 0,
-        autonomousTasks: response.data.autonomous_tasks?.length || 0,
-      },
-      "ApiClient.generateAgent"
-    );
-
-    return response.data;
+      // Re-throw the original error
+      throw error;
+    }
   }
 
   // User Agents
